@@ -20,6 +20,11 @@ export class LegalFormResolver {
     return await this.service.getLegalFormById(id);
   }
 
+  @Query(() => [LegalForm])
+  async getHome(): Promise<LegalForm[]> {
+    return await this.service.getHome();
+  }
+
   @Mutation(() => LegalForm)
   async createLegalForm(@Arg("data") data: LegalFormInput): Promise<LegalForm> {
     return await this.service.createLegalForm(data);

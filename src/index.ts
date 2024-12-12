@@ -5,7 +5,7 @@ import { ApolloServerPluginDrainHttpServer } from '@apollo/server/plugin/drainHt
 import express from "express";
 import cors from "cors";
 import { buildSchema } from "type-graphql";
-import { LegalFormResolver } from "./resolvers/legalFormResolver";
+import { LegalFormResolver } from "./resolvers/LegalFormResolver";
 import http from 'http';
 import bodyParser from "body-parser";
 import { connectDB1, connectDB2 } from "./config/mongoConfig";
@@ -24,7 +24,7 @@ async function main() {
 
     const schema = await buildSchema({
         resolvers: [LegalFormResolver],
-        validate: false // Add this if you're having validation issues
+        validate: false
     });
 
     const server = new ApolloServer({
