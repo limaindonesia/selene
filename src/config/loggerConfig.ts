@@ -10,7 +10,7 @@ if(env.log_transport === 'CONSOLE'){
 else {
   logTransports.push(new DailyRotateFile({
     dirname: './logs',
-    filename: 'auth_service-%DATE%.log',
+    filename: 'legal_form_service-%DATE%.log',
     utc: true,
     maxSize: '50m',
     maxFiles: '30d'
