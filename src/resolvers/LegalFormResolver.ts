@@ -1,5 +1,5 @@
 import { Resolver, Query, Mutation, Arg } from "type-graphql";
-import { LegalForm, LegalFormInput } from "../schemas/LegalFormSchema";
+import { LegalForm, LegalFormCategory,  LegalFormInput } from "../schemas/LegalFormSchema";
 import { LegalFormService } from "../services/LegalFormService";
 
 @Resolver()
@@ -20,8 +20,8 @@ export class LegalFormResolver {
     return await this.service.getLegalFormById(id);
   }
 
-  @Query(() => [LegalForm])
-  async getHome(): Promise<LegalForm[]> {
+  @Query(() => [LegalFormCategory])
+  async getHome(): Promise<LegalFormCategory[]> {
     return await this.service.getHome();
   }
 

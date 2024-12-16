@@ -1,4 +1,4 @@
-import { LegalFormModel, ILegalForm } from "../models/LegalForm";
+import { LegalFormModel, ILegalForm, ILegalCategory } from "../models/LegalForm";
 import { connectDB1 } from "../config/mongoConfig";
 
 export class LegalFormRepository {
@@ -31,5 +31,27 @@ export class LegalFormRepository {
   async delete(id: string): Promise<ILegalForm | null> {
     const model = await this.getModel();
     return await model.findByIdAndDelete(id);
+  }
+
+  public async getHome(): Promise<ILegalCategory[]> {
+    const model = await this.getModel();
+
+    const groupedCategories = await model.aggregate([
+      {
+        $group: {
+          _id: "$category",
+          total: { $count: {} }
+        }
+      },
+      {
+        $project: {
+          category: "$_id",
+          total: 1,
+          _id: 0
+        }
+      }
+    ]);
+
+    return groupedCategories;
   }
 }

@@ -13,6 +13,11 @@ export interface ILegalForm extends Document {
   updatedAt: Date;
 }
 
+export interface ILegalCategory extends Document {
+  category: string;
+  total: number;
+}
+
 const LegalFormSchema = new Schema<ILegalForm>(
   {
     title: { type: String, required: true },

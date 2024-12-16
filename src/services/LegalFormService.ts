@@ -1,5 +1,5 @@
 import { LegalFormRepository } from "../repositories/LegalFormRepository";
-import { ILegalForm } from "../models/LegalForm";
+import { ILegalForm, ILegalCategory } from "../models/LegalForm";
 import { LoggingMiddleware, ValidationMiddleware, ExecutionTimeMiddleware } from "../middleware/LegalFormMiddleware";
 
 export class LegalFormService {
@@ -67,7 +67,7 @@ export class LegalFormService {
     );
   }
 
-  async getHome(): Promise<ILegalForm[]> {
-    return await this.repository.findAll();
+  async getHome(): Promise<ILegalCategory[]> {
+    return await this.repository.getHome();
   }
 }

@@ -18,6 +18,15 @@ export class LegalForm {
   updatedAt: Date;
 }
 
+@ObjectType() 
+export class LegalFormCategory {
+  @Field()
+  category: string;
+
+  @Field()
+  total: number;
+}
+
 @InputType()
 export class LegalFormInput {
   @Field()
