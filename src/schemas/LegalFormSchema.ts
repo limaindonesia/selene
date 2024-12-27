@@ -6,10 +6,13 @@ export class LegalForm {
   id: string;
 
   @Field()
-  title: string;
+  name: string;
 
   @Field()
-  content: string;
+  category: string;
+
+  @Field()
+  description: string;
 
   @Field()
   createdAt: Date;
@@ -18,20 +21,11 @@ export class LegalForm {
   updatedAt: Date;
 }
 
-@ObjectType() 
-export class LegalFormCategory {
-  @Field()
-  category: string;
-
-  @Field()
-  total: number;
-}
-
 @InputType()
 export class LegalFormInput {
   @Field()
-  title: string;
+  name: string;
 
   @Field()
-  content: string;
+  category: string;
 }

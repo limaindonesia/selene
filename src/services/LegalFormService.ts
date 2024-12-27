@@ -67,7 +67,25 @@ export class LegalFormService {
     );
   }
 
-  async getHome(): Promise<ILegalCategory[]> {
-    return await this.repository.getHome();
+  async getHome() {
+    const categoriesAggregation = await this.repository.countByCategory();
+    const templates = await this.repository.findAllByStatus("SHOW");
+
+    const categories = categoriesAggregation.map((category) => ({
+      id: category.category,
+      name: category.category,
+      totalTemplates: category.count,
+    }));
+
+    const transformedTemplates = templates.map((template) => ({
+      id: template._id.toString(),
+      name: template.name,
+      description: template.description,
+    }));
+
+    return {
+      categories,
+      templates: transformedTemplates,
+    };
   }
 }

@@ -3,28 +3,34 @@ import { DocumentStatus } from "../enums/documentStatus.enum";
 
 export interface ILegalForm extends Document {
   id: string;
-  title: string;
-  content: string;
-  clientId: number;
+  name: string;
   category: string;
-  status: DocumentStatus;
-  documentUrl: string,
+  description: string;
+  status: string;
+  price: number;
+  keywords: string[];
+  picture_url: string;
+  template_doc_id: string;
+  form_detail: any[];
   createdAt: Date;
   updatedAt: Date;
 }
 
 export interface ILegalCategory extends Document {
-  category: string;
-  total: number;
+  categories: [];
+  templates: [];
 }
 
-const LegalFormSchema = new Schema<ILegalForm>(
-  {
-    title: { type: String, required: true },
-    content: { type: String, required: true }
-  },
-  { timestamps: true }
-);
+const LegalFormSchema = new Schema<ILegalForm>({
+  name: { type: String, required: true },
+  category: { type: String, required: true },
+  description: { type: String, required: true },
+  status: { type: String, required: true },
+  price: { type: Number, required: true },
+  keywords: { type: [String], required: true },
+  picture_url: { type: String, required: true },
+  template_doc_id: { type: String, required: true },
+}, { timestamps: true });
 
 LegalFormSchema.virtual("id").get(function () {
   return this._id.toString();
@@ -33,5 +39,5 @@ LegalFormSchema.virtual("id").get(function () {
 LegalFormSchema.set("toJSON", { virtuals: true });
 
 export const LegalFormModel = (connection: Connection): Model<ILegalForm> => {
-  return connection.model<ILegalForm>("LegalForm", LegalFormSchema);
+  return connection.model<ILegalForm>("m_legal_forms", LegalFormSchema);
 };

@@ -33,25 +33,17 @@ export class LegalFormRepository {
     return await model.findByIdAndDelete(id);
   }
 
-  public async getHome(): Promise<ILegalCategory[]> {
+  async findAllByStatus(status: string): Promise<ILegalForm[]> {
     const model = await this.getModel();
+    return await model.find({ status }).exec();
+  }
 
-    const groupedCategories = await model.aggregate([
-      {
-        $group: {
-          _id: "$category",
-          total: { $count: {} }
-        }
-      },
-      {
-        $project: {
-          category: "$_id",
-          total: 1,
-          _id: 0
-        }
-      }
+  async countByCategory(): Promise<{ category: string; count: number }[]> {
+    const model = await this.getModel();
+    return await model.aggregate([
+      { $match: { status: "SHOW" } },
+      { $group: { _id: "$category", count: { $sum: 1 } } },
+      { $project: { category: "$_id", count: 1, _id: 0 } },
     ]);
-
-    return groupedCategories;
   }
 }
