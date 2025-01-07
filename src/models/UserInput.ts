@@ -1,4 +1,4 @@
-import mongoose, { Schema, Document } from "mongoose";
+import mongoose, { Schema, Document, Connection, Model } from "mongoose";
 
 export interface IUserInput extends Document {
   _id: mongoose.Types.ObjectId;
@@ -20,4 +20,12 @@ const UserInputSchema = new Schema<IUserInput>(
   { timestamps: true }
 );
 
-export const UserInputModel = mongoose.model<IUserInput>("UserInput", UserInputSchema);
+UserInputSchema.virtual("id").get(function () {
+  return this._id.toString();
+});
+
+UserInputSchema.set("toJSON", { virtuals: true });
+
+export const UserInputModel = (connection: Connection): Model<IUserInput> => {
+  return connection.model<IUserInput>("UserInput", UserInputSchema);
+};

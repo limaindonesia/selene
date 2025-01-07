@@ -1,5 +1,6 @@
 import { Resolver, Query, Mutation, Arg } from "type-graphql";
-import { LegalForm, LegalFormInput } from "../schemas/LegalFormSchema";
+import { LegalForm,  LegalFormInput } from "../schemas/LegalFormSchema";
+import { HomeResponse } from "../schemas/HomeSchema";
 import { LegalFormService } from "../services/LegalFormService";
 
 @Resolver()
@@ -16,12 +17,21 @@ export class LegalFormResolver {
   }
 
   @Query(() => LegalForm, { nullable: true })
-  async getLegalForm(@Arg("id") id: string): Promise<LegalForm | null> {
+  async getLegalForm(
+    @Arg("id") id: string
+  ): Promise<LegalForm | null> {
     return await this.service.getLegalFormById(id);
   }
 
+  @Query(() => HomeResponse)
+  async getHome(): Promise<HomeResponse> {
+    return await this.service.getHome();
+  }
+
   @Mutation(() => LegalForm)
-  async createLegalForm(@Arg("data") data: LegalFormInput): Promise<LegalForm> {
+  async createLegalForm(
+    @Arg("data") data: LegalFormInput
+  ): Promise<LegalForm> {
     return await this.service.createLegalForm(data);
   }
 
@@ -34,7 +44,9 @@ export class LegalFormResolver {
   }
 
   @Mutation(() => LegalForm, { nullable: true })
-  async deleteLegalForm(@Arg("id") id: string): Promise<LegalForm | null> {
+  async deleteLegalForm(
+    @Arg("id") id: string
+  ): Promise<LegalForm | null> {
     return await this.service.deleteLegalForm(id);
   }
 }
