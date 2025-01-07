@@ -9,7 +9,7 @@ export class Category {
   name: string;
 
   @Field()
-  totalTemplates: number;
+  total_templates: number;
 }
 
 @ObjectType()

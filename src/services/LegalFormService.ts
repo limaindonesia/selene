@@ -74,7 +74,7 @@ export class LegalFormService {
     const categories = categoriesAggregation.map((category) => ({
       id: category.category,
       name: category.category,
-      totalTemplates: category.count,
+      total_templates: category.count,
     }));
 
     const transformedTemplates = templates.map((template) => ({
