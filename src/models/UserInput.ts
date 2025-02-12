@@ -2,20 +2,16 @@ import mongoose, { Schema, Document, Connection, Model } from "mongoose";
 
 export interface IUserInput extends Document {
   _id: mongoose.Types.ObjectId;
-  documentId: string;
-  templateId: string;
-  clientId: number;
-  InputData: Object;
+  user_document_id: string;
+  input: any[];
   createdAt: Date;
   updatedAt: Date;
 }
 
 const UserInputSchema = new Schema<IUserInput>(
   {
-    documentId: { type: String, required: true },
-    templateId: { type: String, required: true },
-    clientId: { type: Number, required: true },
-    InputData: { type: Object, required: true },
+    user_document_id: { type: String, required: true },
+    input: { type: [], required: true },
   },
   { timestamps: true }
 );
@@ -27,5 +23,5 @@ UserInputSchema.virtual("id").get(function () {
 UserInputSchema.set("toJSON", { virtuals: true });
 
 export const UserInputModel = (connection: Connection): Model<IUserInput> => {
-  return connection.model<IUserInput>("UserInput", UserInputSchema);
+  return connection.model<IUserInput>("m_user_inputs", UserInputSchema);
 };
