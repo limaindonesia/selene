@@ -2,6 +2,7 @@ import mongoose, { Schema, Document, Connection, Model } from "mongoose";
 
 export interface IUserDocument extends Document {
   id: string;
+  document_id: number;
   legal_form_id: string;
   client_id: string;
   status: string;
@@ -14,6 +15,7 @@ export interface IUserDocument extends Document {
 }
 
 const UserDocumentSchema = new Schema<IUserDocument>({
+  document_id: { type: Number, required: true },
   legal_form_id: { type: String, required: true },
   client_id: { type: String, required: true },
   status: { type: String, required: true },

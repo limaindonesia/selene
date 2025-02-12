@@ -2,7 +2,7 @@ import mongoose, { Schema, Document, Connection, Model } from "mongoose";
 
 export interface IUserInput extends Document {
   _id: mongoose.Types.ObjectId;
-  user_document_id: string;
+  document_id: number;
   input: any[];
   createdAt: Date;
   updatedAt: Date;
@@ -10,7 +10,7 @@ export interface IUserInput extends Document {
 
 const UserInputSchema = new Schema<IUserInput>(
   {
-    user_document_id: { type: String, required: true },
+    document_id: { type: Number, required: true },
     input: { type: [], required: true },
   },
   { timestamps: true }

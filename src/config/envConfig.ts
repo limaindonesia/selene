@@ -7,7 +7,7 @@ const env = {
   log_transport: process.env.LOG_TRANSPORT || 'FILE',   // CONSOLE, FILE
   mongodb1: {
     uri: process.env.MONGO1_URI|| 'mongodb://localhost:27017',
-    database: process.env.MONGO1_DBNAME || 'legal_form',
+    database: process.env.MONGO1_DBNAME || 'perqara',
     username: process.env.MONGO1_USERNAME || 'root',
     password: process.env.MONGO1_PASSWORD || '',
   },
