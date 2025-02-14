@@ -1,21 +1,16 @@
 import { ObjectType, Field, ID, InputType } from "type-graphql";
+import { GraphQLJSON } from "graphql-scalars";
 
-@ObjectType() 
+@ObjectType()
 export class UserInput {
   @Field(() => ID)
   id: string;
 
   @Field()
-  documentId: string;
+  document_id: number;
 
-  @Field()
-  templateId: string;
-
-  @Field()
-  clientId: number;
-
-  @Field()
-  InputData: Object;
+  @Field(() => GraphQLJSON)
+  input: any;
 
   @Field()
   createdAt: Date;
@@ -27,14 +22,8 @@ export class UserInput {
 @InputType()
 export class UserInputInput {
   @Field()
-  documentId: string;
+  document_id: number;
 
-  @Field()
-  templateId: string;
-
-  @Field()
-  clientId: number;
-
-  @Field()
-  InputData: Object;
+  @Field(() => GraphQLJSON)
+  input: any;
 }

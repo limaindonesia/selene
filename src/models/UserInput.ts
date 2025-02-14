@@ -1,7 +1,7 @@
 import mongoose, { Schema, Document, Connection, Model } from "mongoose";
 
 export interface IUserInput extends Document {
-  _id: mongoose.Types.ObjectId;
+  id: string;
   document_id: number;
   input: any[];
   createdAt: Date;
