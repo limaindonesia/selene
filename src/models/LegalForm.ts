@@ -24,7 +24,7 @@ export interface ILegalCategory extends Document {
 
 const LegalFormSchema = new Schema<ILegalForm>({
   name: { type: String, required: true },
-  category: { type: String, required: true },
+  category: { type: String, ref: "m_categories", required: true },
   description: { type: String, required: true },
   status: { type: String, required: true },
   price: { type: Number, required: false },
