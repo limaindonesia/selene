@@ -38,4 +38,13 @@ export class UserDocumentRepository {
     const lastDoc = await model.findOne().sort({ document_id: -1 });
     return lastDoc ? lastDoc.document_id : 0;
   }
+  
+  async findByDocumentId(document_id: Number): Promise<IUserDocument | null> {
+    const model = await this.getModel();
+    const userDocument = await model.findOne({
+      document_id: document_id
+    });
+
+    return userDocument;
+  }
 }
