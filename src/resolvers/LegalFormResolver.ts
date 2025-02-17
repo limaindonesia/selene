@@ -31,9 +31,11 @@ export class LegalFormResolver {
   @Query(() => PaginatedLegalForms)
   async getLegalFormsWithPagination(
     @Arg("page") page: number,
-    @Arg("pageSize") pageSize: number
-  ): Promise<{ totalItems: number; totalPages: number; data: any[] }> {
-    return await this.service.getLegalFormsWithPagination(page, pageSize);
+    @Arg("limit") limit: number,
+    @Arg("keyword", { nullable: true }) keyword?: string,
+    @Arg("category", { nullable: true }) category?: string,
+  ): Promise<{ total_items: number; current_page: number; data: any[] }> {
+    return await this.service.getLegalFormsWithPagination(page, limit, keyword, category);
   }
 
   @Query(() => [LegalForm])

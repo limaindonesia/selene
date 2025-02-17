@@ -116,11 +116,25 @@ export class LegalFormService {
   
   async getLegalFormsWithPagination(
     page: number,
-    pageSize: number
-  ): Promise<{ totalItems: number; totalPages: number; data: any[] }> {
-    const { totalItems, totalPages, data } = await this.repository.findAllWithPagination(
+    limit: number,
+    keyword?: string,
+    category?: string,
+  ): Promise<{ total_items: number; current_page: number; data: any[] }> {
+
+    var filterCategory: any;
+
+    if (category) {
+      const categories = category.split(/\s*,\s*/);
+      const categoryData = await this.categoryRepository.findByNames(categories);
+  
+      filterCategory = categoryData.map(({ string_id }) => string_id);
+    }
+
+    const { total_items, current_page, data } = await this.repository.findAllWithPagination(
       page,
-      pageSize
+      limit,
+      keyword,
+      category ?? filterCategory
     );
   
     const formattedData = await Promise.all(data.map(async (legalForm) => {
@@ -155,8 +169,8 @@ export class LegalFormService {
     }));
   
     return {
-      totalItems,
-      totalPages,
+      total_items,
+      current_page,
       data: formattedData,
     };
   }
@@ -166,11 +180,17 @@ export class LegalFormService {
     category?: string,
     limit?: number
   ): Promise<any | null>  {
-    const categories = await this.categoryRepository.findByName(category);
+    
+    var filterCategory: any;
 
-    const string_id = categories ? categories.string_id : '';
+    if (category) {
+      const categories = category.split(/\s*,\s*/);
+      const categoryData = await this.categoryRepository.findByNames(categories);
+  
+      filterCategory = categoryData.map(({ string_id }) => string_id);
+    }
 
-    const data = await this.repository.findByFilters(keyword, string_id, limit);
+    const data = await this.repository.findByFilters(keyword, filterCategory, limit);
  
     const formattedData = await Promise.all(data.map(async (legalForm) => {
       try {

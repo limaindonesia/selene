@@ -45,19 +45,37 @@ export class LegalFormRepository {
 
   async findAllWithPagination(
     page: number,
-    pageSize: number
-  ): Promise<{ totalItems: number; totalPages: number; data: ILegalForm[] }> {
+    limit: number,
+    keyword?: string,
+    category?: string[],
+  ): Promise<{ total_items: number; current_page: number; data: ILegalForm[] }> {
+    
+    const current_page = page;
+
     const model = await this.getModel();
-    const totalItems = await model.countDocuments();
-    const totalPages = Math.ceil(totalItems / pageSize);
+
+    const filter: any = {};
+    
+    filter.status = 'SHOW';
+
+    if (keyword) {
+      filter.name = { $regex: keyword, $options: "i" }; 
+    }
+
+    if (category) {
+      filter.category = { $in: category};
+    }
+
+    const total_items = await model.countDocuments(filter);
+    
     const data = await model
-      .find({ status: 'SHOW'})
-      .skip((page - 1) * pageSize)
-      .limit(pageSize);
+      .find(filter)
+      .skip((page - 1) * limit)
+      .limit(limit);
 
     return {
-      totalItems,
-      totalPages,
+      total_items,
+      current_page,
       data,
     };
   }
@@ -78,7 +96,7 @@ export class LegalFormRepository {
 
   async findByFilters(
     keyword?: string,
-    category?: string,
+    category?: string[],
     limit?: number
   ): Promise<ILegalForm[]> {
     const model = await this.getModel();
@@ -91,7 +109,7 @@ export class LegalFormRepository {
     }
 
     if (category) {
-      filter.category = category;
+      filter.category = { $in: category};
     }
 
     const queryLimit = limit ?? 10;
