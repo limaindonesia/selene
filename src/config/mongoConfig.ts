@@ -15,7 +15,7 @@ const options2: ConnectOptions = {
 
 export const connectDB1 = async (): Promise<Connection> => {
   try {
-    const connection = mongoose.createConnection(env.mongodb2.uri || "", options1);
+    const connection = mongoose.createConnection(env.mongodb1.uri || "", options1);
     console.log("Connected to Database 1");
     return connection;
   } catch (error) {
