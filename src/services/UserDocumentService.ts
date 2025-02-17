@@ -65,15 +65,18 @@ export class UserDocumentService {
   }
 
   public async getAllUserDocuments(
-    page: number = 1,
-    pageSize: number = 10,
+    page?: number,
+    pageSize?: number,
     status?: string[]
   ): Promise<UserDocumentResponse> {
+    const usePagination = page !== undefined && pageSize !== undefined;
+    const effectivePage = usePagination ? page : 1;
+    const effectivePageSize = usePagination ? pageSize : 10;
     const statusNumbers = status?.map(s => DocumentStatus[s as keyof typeof DocumentStatus]);
 
     const { data, totalItems, totalPages } = await this.userDocumentRepository.findAllWithPagination(
-      page,
-      pageSize,
+      effectivePage,
+      effectivePageSize,
       statusNumbers
     );
 
@@ -122,7 +125,7 @@ export class UserDocumentService {
       message: "Documents retrieved successfully"
     };
 
-    if (page !== undefined && pageSize !== undefined) {
+    if (usePagination) {
       response.pagination = {
         total: totalItems,
         count: documentsWithLegalForm.length,
