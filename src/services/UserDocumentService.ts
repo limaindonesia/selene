@@ -77,7 +77,7 @@ export class UserDocumentService {
     return this.userDocumentRepository.delete(id);
   }
 
-  public async changeUserDocumentStatus(document_id: number, status: string): Promise<IUserDocument | null> {
+  public async changeUserDocumentStatus(document_id: number, status: number): Promise<IUserDocument | null> {
     const userDocument = await this.userDocumentRepository.findByDocumentId(document_id);
     userDocument.status = status;
 

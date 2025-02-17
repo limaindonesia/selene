@@ -39,7 +39,7 @@ export class UserDocumentResolver {
 
   @Mutation(() => UserDocument)
   async changeUserDocumentStatus(
-    @Arg("document_id") document_id: number, @Arg("status") status: string
+    @Arg("document_id") document_id: number, @Arg("status") status: number
   ): Promise<UserDocument> {
     return await this.service.changeUserDocumentStatus(document_id, status);
   }
