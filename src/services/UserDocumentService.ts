@@ -6,7 +6,7 @@ import { IUserInput } from "../models/UserInput";
 interface CreateDocumentAndInputParams {
   client_id: string;
   legal_form_id: string;
-  status: string;
+  status: number;
   is_client_rated?: boolean;
   document_rating?: string;
   generated_at?: string;

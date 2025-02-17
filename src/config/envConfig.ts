@@ -13,9 +13,9 @@ const env = {
   },
   mongodb2: {
     uri: process.env.MONGO1_URI|| 'mongodb://localhost:27017',
-    database: process.env.MONGO1_DBNAME || 'legal_form',
-    username: process.env.MONGO1_USERNAME || 'root',
-    password: process.env.MONGO1_PASSWORD || '',
+    database: process.env.MONGO2_DBNAME || 'legal_form',
+    username: process.env.MONGO2_USERNAME || 'root',
+    password: process.env.MONGO2_PASSWORD || '',
   },
 }
 
