@@ -59,10 +59,10 @@ export class LegalFormInput {
 @ObjectType()
 export class PaginatedLegalForms {
   @Field(() => Int)
-  totalItems: number;
+  total_items: number;
 
   @Field(() => Int)
-  totalPages: number;
+  current_page: number;
 
   @Field(() => [LegalForm])
   data: LegalForm[];
