@@ -6,13 +6,15 @@ export interface ILegalForm extends Document {
   category: string;
   description: string;
   status: string;
-  price: number;
-  final_price: number;
+  price: string;
+  final_price: string;
   keywords: string[];
   picture_url: string;
   template_doc_id: string;
   is_highlight: boolean;
   form_detail: any[];
+  rating: string;
+  total_created: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -27,8 +29,8 @@ const LegalFormSchema = new Schema<ILegalForm>({
   category: { type: String, ref: "m_categories", required: true },
   description: { type: String, required: true },
   status: { type: String, required: true },
-  price: { type: Number, required: false },
-  final_price: { type: Number, required: true },
+  price: { type: String, required: false },
+  final_price: { type: String, required: true },
   keywords: { type: [String], required: false },
   picture_url: { type: String, required: true },
   template_doc_id: { type: String, required: true },

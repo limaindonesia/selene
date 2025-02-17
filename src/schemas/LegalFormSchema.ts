@@ -3,6 +3,10 @@ import { GraphQLJSON } from "graphql-scalars";
 
 @ObjectType()
 export class LegalForm {
+
+  @Field(() => ID)
+  id: string;
+
   @Field()
   name: string;
 
@@ -16,10 +20,10 @@ export class LegalForm {
   status: string;
 
   @Field()
-  price: number;
+  price: string;
 
   @Field()
-  final_price: number;
+  final_price: string;
 
   @Field(() => [String], { nullable: true })
   keywords?: string[];
@@ -35,6 +39,12 @@ export class LegalForm {
 
   @Field(() => [GraphQLJSON], { nullable: true })
   form_detail?: any[];
+
+  @Field()
+  rating: string;
+
+  @Field()
+  total_created: number;
 }
 
 @InputType()
@@ -53,9 +63,6 @@ export class PaginatedLegalForms {
 
   @Field(() => Int)
   totalPages: number;
-
-  @Field(() => Int)
-  currentPage: number;
 
   @Field(() => [LegalForm])
   data: LegalForm[];

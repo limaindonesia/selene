@@ -51,7 +51,7 @@ export class LegalFormRepository {
     const totalItems = await model.countDocuments();
     const totalPages = Math.ceil(totalItems / pageSize);
     const data = await model
-      .find()
+      .find({ status: 'SHOW'})
       .skip((page - 1) * pageSize)
       .limit(pageSize);
 
@@ -83,6 +83,8 @@ export class LegalFormRepository {
   ): Promise<ILegalForm[]> {
     const model = await this.getModel();
     const filter: any = {};
+    
+    filter.status = 'SHOW';
 
     if (keyword) {
       filter.name = { $regex: keyword, $options: "i" }; 
