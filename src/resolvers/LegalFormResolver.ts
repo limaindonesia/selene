@@ -1,5 +1,5 @@
-import { Resolver, Query, Mutation, Arg } from "type-graphql";
-import { LegalForm,  LegalFormInput } from "../schemas/LegalFormSchema";
+import { Resolver, Query, Mutation, Int, Arg } from "type-graphql";
+import { LegalForm,  LegalFormInput, PaginatedLegalForms, LegalFormDetail } from "../schemas/LegalFormSchema";
 import { HomeResponse } from "../schemas/HomeSchema";
 import { LegalFormService } from "../services/LegalFormService";
 
@@ -28,6 +28,33 @@ export class LegalFormResolver {
     return await this.service.getHome();
   }
 
+  @Query(() => PaginatedLegalForms)
+  async getLegalFormsWithPagination(
+    @Arg("page") page: number,
+    @Arg("pageSize") pageSize: number
+  ): Promise<{ totalItems: number; totalPages: number; data: any[] }> {
+    return await this.service.getLegalFormsWithPagination(page, pageSize);
+  }
+
+  @Query(() => [LegalForm])
+  async getFilteredLegalForms(
+    @Arg("keyword", { nullable: true }) keyword?: string,
+    @Arg("category", { nullable: true }) category?: string,
+    @Arg("limit", () => Int, { nullable: true }) limit?: number
+  ): Promise<LegalForm[]> {
+    return this.service.getLegalFormsByFilters(keyword, category, limit);
+  }
+
+  @Query(() => LegalFormDetail, { nullable: true })
+  async getLegalFormWithTemplate(@Arg("id") id: string): Promise<LegalFormDetail | null> {
+    const result = await this.service.getLegalFormWithTemplate(id);
+    if (!result) {
+      return null;
+    }
+
+    return result as LegalFormDetail;
+  }
+  
   @Mutation(() => LegalForm)
   async createLegalForm(
     @Arg("data") data: LegalFormInput

@@ -38,6 +38,35 @@ export class LegalFormRepository {
     return await model.find({ status }).exec();
   }
 
+  async findAllByHighlight(): Promise<ILegalForm[]> {
+    const model = await this.getModel();
+    return await model.find({ status: 'SHOW', is_highlight: true }).exec();
+  }
+
+  async findAllWithPagination(
+    page: number,
+    pageSize: number
+  ): Promise<{ totalItems: number; totalPages: number; data: ILegalForm[] }> {
+    const model = await this.getModel();
+    const totalItems = await model.countDocuments();
+    const totalPages = Math.ceil(totalItems / pageSize);
+    const data = await model
+      .find()
+      .skip((page - 1) * pageSize)
+      .limit(pageSize);
+
+    return {
+      totalItems,
+      totalPages,
+      data,
+    };
+  }
+
+  async findAllByCategory(category: string): Promise<ILegalForm[]> {
+    const model = await this.getModel();
+    return model.find({ category });
+  }
+
   async countByCategory(): Promise<{ category: string; count: number }[]> {
     const model = await this.getModel();
     return await model.aggregate([
@@ -45,5 +74,26 @@ export class LegalFormRepository {
       { $group: { _id: "$category", count: { $sum: 1 } } },
       { $project: { category: "$_id", count: 1, _id: 0 } },
     ]);
+  }
+
+  async findByFilters(
+    keyword?: string,
+    category?: string,
+    limit?: number
+  ): Promise<ILegalForm[]> {
+    const model = await this.getModel();
+    const filter: any = {};
+
+    if (keyword) {
+      filter.name = { $regex: keyword, $options: "i" }; 
+    }
+
+    if (category) {
+      filter.category = category;
+    }
+
+    const queryLimit = limit ?? 10;
+
+    return model.find(filter).limit(queryLimit).exec();
   }
 }

@@ -1,10 +1,8 @@
-import { ObjectType, Field, ID, InputType } from "type-graphql";
+import { ObjectType, Field, Int, Float, ID, InputType } from "type-graphql";
+import { GraphQLJSON } from "graphql-scalars"; 
 
-@ObjectType() 
+@ObjectType()
 export class LegalForm {
-  @Field(() => ID)
-  id: string;
-
   @Field()
   name: string;
 
@@ -15,10 +13,28 @@ export class LegalForm {
   description: string;
 
   @Field()
-  createdAt: Date;
+  status: string;
 
   @Field()
-  updatedAt: Date;
+  price: number;
+
+  @Field()
+  final_price: number;
+
+  @Field(() => [String], { nullable: true })
+  keywords?: string[];
+
+  @Field()
+  picture_url: string;
+
+  @Field()
+  template_doc_id: string;
+
+  @Field({ nullable: true })
+  is_highlight?: boolean;
+
+  @Field(() => [GraphQLJSON], { nullable: true })
+  form_detail?: any[];
 }
 
 @InputType()
@@ -28,4 +44,52 @@ export class LegalFormInput {
 
   @Field()
   category: string;
+}
+
+@ObjectType()
+export class PaginatedLegalForms {
+  @Field(() => Int)
+  totalItems: number;
+
+  @Field(() => Int)
+  totalPages: number;
+
+  @Field(() => Int)
+  currentPage: number;
+
+  @Field(() => [LegalForm])
+  data: LegalForm[];
+}
+
+@ObjectType()
+export class LegalFormDetail {
+  @Field()
+  id: string;
+
+  @Field()
+  name: string;
+
+  @Field()
+  price: string;
+
+  @Field()
+  final_price: string;
+
+  @Field()
+  description: string;
+
+  @Field()
+  picture_url: string;
+
+  @Field()
+  category: string;
+
+  @Field()
+  rating: string;
+
+  @Field()
+  total_created: number;
+
+  @Field()
+  template: string;
 }

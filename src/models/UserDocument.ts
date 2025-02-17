@@ -15,7 +15,7 @@ export interface IUserDocument extends Document {
 }
 
 const UserDocumentSchema = new Schema<IUserDocument>({
-  document_id: { type: Number, required: true },
+  document_id: { type: Number, required: true, unique: true},
   legal_form_id: { type: String, required: true },
   client_id: { type: String, required: true },
   status: { type: String, required: true },

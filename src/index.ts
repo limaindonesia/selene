@@ -6,6 +6,9 @@ import express from "express";
 import cors from "cors";
 import { buildSchema } from "type-graphql";
 import { LegalFormResolver } from "./resolvers/LegalFormResolver";
+import { CategoryResolver } from "./resolvers/CategoryResolver";
+import { UserDocumentResolver } from "./resolvers/UserDocumentResolver";
+import { UserInputResolver } from "./resolvers/UserInputResolver";
 import http from 'http';
 import bodyParser from "body-parser";
 import { connectDB1, connectDB2 } from "./config/mongoConfig";
@@ -23,7 +26,12 @@ async function main() {
     await connectDB2();
 
     const schema = await buildSchema({
-        resolvers: [LegalFormResolver],
+        resolvers: [
+            LegalFormResolver,
+            CategoryResolver,
+            UserDocumentResolver,
+            UserInputResolver
+        ],
         validate: false
     });
 
