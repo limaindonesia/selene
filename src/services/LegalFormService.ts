@@ -131,8 +131,8 @@ export class LegalFormService {
           id: legalForm.id,
           category: category ? category.name : "",
           name: legalForm.name,
-          price: `Rp${legalForm.price.toLocaleString()}`,
-          final_price: `Rp${legalForm.final_price.toLocaleString()}`,
+          price:  legalForm.price ? `Rp${legalForm.price.toLocaleString()}` : `Rp0`,
+          final_price: legalForm.final_price ? `Rp${legalForm.final_price.toLocaleString()}` : `Rp0`,
           description: legalForm.description,
           picture_url: legalForm.picture_url,
           rating: "4.0",  // TO DO Replace with actual rating calculation
@@ -144,8 +144,8 @@ export class LegalFormService {
           id: legalForm.id,
           category: "",
           name: legalForm.name,
-          price: `Rp${legalForm.price.toLocaleString()}`,
-          final_price: `Rp${legalForm.final_price.toLocaleString()}`,
+          price:  legalForm.price ? `Rp${legalForm.price.toLocaleString()}` : `Rp0`,
+          final_price: legalForm.final_price ? `Rp${legalForm.final_price.toLocaleString()}` : `Rp0`,
           description: legalForm.description,
           picture_url: legalForm.picture_url,
           rating: "4.0",  // TO DO Replace with actual rating calculation
@@ -165,10 +165,45 @@ export class LegalFormService {
     keyword?: string,
     category?: string,
     limit?: number
-  ): Promise<ILegalForm[]> {
+  ): Promise<any | null>  {
     const categories = await this.categoryRepository.findByName(category);
 
-    return this.repository.findByFilters(keyword, categories.string_id, limit);
+    const string_id = categories ? categories.string_id : '';
+
+    const data = await this.repository.findByFilters(keyword, string_id, limit);
+ 
+    const formattedData = await Promise.all(data.map(async (legalForm) => {
+      try {
+        const category = await this.categoryRepository.findByStringId(legalForm.category);
+  
+        return {
+          id: legalForm.id,
+          category: category ? category.name : "",
+          name: legalForm.name,
+          price:  legalForm.price ? `Rp${legalForm.price.toLocaleString()}` : `Rp0`,
+          final_price: legalForm.final_price ? `Rp${legalForm.final_price.toLocaleString()}` : `Rp0`,
+          description: legalForm.description,
+          picture_url: legalForm.picture_url,
+          rating: "4.0",  // TO DO Replace with actual rating calculation
+          total_created: 300,  // TO DO Replace with actual total_created calculation
+        };
+      } catch (error) {
+        console.error(`Error fetching category for LegalForm ${legalForm.id}:`, error);
+        return {
+          id: legalForm.id,
+          category: "",
+          name: legalForm.name,
+          price:  legalForm.price ? `Rp${legalForm.price.toLocaleString()}` : `Rp0`,
+          final_price: legalForm.final_price ? `Rp${legalForm.final_price.toLocaleString()}` : `Rp0`,
+          description: legalForm.description,
+          picture_url: legalForm.picture_url,
+          rating: "4.0",  // TO DO Replace with actual rating calculation
+          total_created: 300,  // TO DO Replace with actual total_created calculation
+        };
+      }
+    }));
+
+    return formattedData;
   }
 
   public async getLegalFormWithTemplate(id: string): Promise<any | null> {
@@ -181,14 +216,16 @@ export class LegalFormService {
       legalForm.template_doc_id
     );
 
+    const category = await this.categoryRepository.findByStringId(legalForm.category);
+
     const finalResult = {
       id: legalForm.id,
       name: legalForm.name,
-      price: `Rp${legalForm.price.toLocaleString()}`, 
-      final_price: `Rp${legalForm.final_price.toLocaleString()}`,
+      price:  legalForm.price ? `Rp${legalForm.price.toLocaleString()}` : `Rp0`,
+      final_price: legalForm.final_price ? `Rp${legalForm.final_price.toLocaleString()}` : `Rp0`,
       description: legalForm.description,
       picture_url: legalForm.picture_url,
-      category: legalForm.category,
+      category: category.name,
       rating: "4.0",
       total_created: 300,
       template: templateDoc ? templateDoc.template : "",
