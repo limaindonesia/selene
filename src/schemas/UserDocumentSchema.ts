@@ -16,7 +16,7 @@ export class UserDocument {
   client_id: string;
 
   @Field()
-  status: string;
+  status: number;
 
   @Field({ nullable: true })
   is_client_rated?: boolean;
@@ -46,7 +46,7 @@ export class UserDocumentInput {
   client_id: string;
 
   @Field()
-  status: string;
+  status: number;
 
   @Field({ nullable: true })
   is_client_rated?: boolean;
@@ -70,7 +70,7 @@ export class CreateDocumentWithInput {
   legal_form_id: string;
 
   @Field()
-  status: string;
+  status: number;
 
   @Field({ nullable: true })
   is_client_rated?: boolean;

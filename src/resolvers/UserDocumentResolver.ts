@@ -36,4 +36,11 @@ export class UserDocumentResolver {
       input: data.input,
     });
   }
+
+  @Mutation(() => UserDocument)
+  async changeUserDocumentStatus(
+    @Arg("document_id") document_id: number, @Arg("status") status: number
+  ): Promise<UserDocument> {
+    return await this.service.changeUserDocumentStatus(document_id, status);
+  }
 }

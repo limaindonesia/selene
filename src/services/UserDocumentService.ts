@@ -6,7 +6,7 @@ import { IUserInput } from "../models/UserInput";
 interface CreateDocumentAndInputParams {
   client_id: string;
   legal_form_id: string;
-  status: string;
+  status: number;
   is_client_rated?: boolean;
   document_rating?: string;
   generated_at?: string;
@@ -75,5 +75,12 @@ export class UserDocumentService {
 
   public async deleteUserDocument(id: string): Promise<IUserDocument | null> {
     return this.userDocumentRepository.delete(id);
+  }
+
+  public async changeUserDocumentStatus(document_id: number, status: number): Promise<IUserDocument | null> {
+    const userDocument = await this.userDocumentRepository.findByDocumentId(document_id);
+    userDocument.status = status;
+
+    return await this.userDocumentRepository.update(userDocument.id, userDocument);
   }
 }
