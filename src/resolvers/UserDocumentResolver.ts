@@ -1,7 +1,7 @@
-import { Resolver, Query, Mutation, Arg } from "type-graphql";
+import { Resolver, Query, Mutation, Arg, Int } from "type-graphql";
 import { UserDocumentService } from "../services/UserDocumentService";
-import { UserDocument } from "../schemas/UserDocumentSchema";
-import { CreateDocumentWithInput } from "../schemas/UserDocumentSchema";
+import { UserDocument, UserDocumentResponse, CreateDocumentWithInput } from "../schemas/UserDocumentSchema";
+import { DocumentStatus } from "../enums/DocumentStatus.enum";
 
 @Resolver()
 export class UserDocumentResolver {
@@ -11,9 +11,19 @@ export class UserDocumentResolver {
     this.service = new UserDocumentService();
   }
 
-  @Query(() => [UserDocument])
-  async getUserDocuments(): Promise<UserDocument[]> {
-    return this.service.getAllUserDocuments();
+  @Query(() => UserDocumentResponse)
+  async getUserDocuments(
+    @Arg("page", () => Int, { nullable: true }) page?: number,
+    @Arg("limit", () => Int, { nullable: true }) limit?: number,
+    @Arg("skip", () => Int, { nullable: true }) skip?: number,
+    @Arg("status", () => [String], { nullable: true }) status?: string[],
+    @Arg("paginate", () => Boolean, { nullable: true }) paginate?: boolean
+  ): Promise<UserDocumentResponse> {
+    if (paginate) {
+      return this.service.getAllUserDocuments(page || 1, limit || 10, status);
+    } else {
+      return this.service.getAllUserDocuments(undefined, undefined, status);
+    }
   }
 
   @Query(() => UserDocument, { nullable: true })
@@ -39,7 +49,8 @@ export class UserDocumentResolver {
 
   @Mutation(() => UserDocument)
   async changeUserDocumentStatus(
-    @Arg("document_id") document_id: number, @Arg("status") status: string
+    @Arg("document_id") document_id: number, 
+    @Arg("status", () => Int) status: DocumentStatus
   ): Promise<UserDocument> {
     return await this.service.changeUserDocumentStatus(document_id, status);
   }
