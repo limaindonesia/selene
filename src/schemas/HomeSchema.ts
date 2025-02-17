@@ -1,7 +1,7 @@
 import { ObjectType, Field, ID } from "type-graphql";
 
 @ObjectType()
-export class Category {
+export class Categories {
   @Field(() => ID)
   id: string;
 
@@ -26,8 +26,8 @@ export class Template {
 
 @ObjectType()
 export class HomeResponse {
-  @Field(() => [Category])
-  categories: Category[];
+  @Field(() => [Categories])
+  categories: Categories[];
 
   @Field(() => [Template])
   templates: Template[];

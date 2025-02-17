@@ -1,7 +1,7 @@
 import { ObjectType, Field, Int, Float, ID, InputType } from "type-graphql";
 import { GraphQLJSON } from "graphql-scalars"; 
 
-@InputType()
+@ObjectType()
 export class LegalForm {
   @Field()
   name: string;
