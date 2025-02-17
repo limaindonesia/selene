@@ -9,6 +9,12 @@ export class Categories {
   name: string;
 
   @Field()
+  icon_url: string;
+
+  @Field()
+  description: string;
+
+  @Field()
   total_templates: number;
 }
 
@@ -22,6 +28,9 @@ export class Template {
 
   @Field()
   description: string;
+
+  @Field()
+  picture_url: string;
 }
 
 @ObjectType()
