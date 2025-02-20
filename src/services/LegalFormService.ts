@@ -253,4 +253,27 @@ export class LegalFormService {
 
     return finalResult;
   }
+
+  public async getLegalFormDetailById(id: string): Promise<any | null> {
+    const legalForm: ILegalForm | null = await this.repository.findById(id);
+    if (!legalForm) {
+      return null;
+    }
+
+    const category = await this.categoryRepository.findByStringId(legalForm.category);
+
+    const finalResult = {
+      id: legalForm.id,
+      name: legalForm.name,
+      price:  legalForm.price ? `Rp${legalForm.price.toLocaleString()}` : `Rp0`,
+      final_price: legalForm.final_price ? `Rp${legalForm.final_price.toLocaleString()}` : `Rp0`,
+      description: legalForm.description,
+      picture_url: legalForm.picture_url,
+      category: category.name,
+      rating: "4.0",
+      total_created: 300,
+    };
+
+    return finalResult;
+  }
 }

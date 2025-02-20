@@ -40,10 +40,10 @@ export class LegalForm {
   @Field(() => [GraphQLJSON], { nullable: true })
   form_detail?: any[];
 
-  @Field()
+  @Field({ nullable: true })
   rating: string;
 
-  @Field()
+  @Field({ nullable: true })
   total_created: number;
 }
 

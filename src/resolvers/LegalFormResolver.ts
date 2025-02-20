@@ -2,13 +2,16 @@ import { Resolver, Query, Mutation, Int, Arg } from "type-graphql";
 import { LegalForm,  LegalFormInput, PaginatedLegalForms, LegalFormDetail } from "../schemas/LegalFormSchema";
 import { HomeResponse } from "../schemas/HomeSchema";
 import { LegalFormService } from "../services/LegalFormService";
+import { UserDocumentService } from "../services/UserDocumentService";
 
 @Resolver()
 export class LegalFormResolver {
   private service: LegalFormService;
+  private documentService: UserDocumentService;
 
   constructor() {
     this.service = new LegalFormService();
+    this.documentService = new UserDocumentService();
   }
 
   @Query(() => [LegalForm])
@@ -55,6 +58,17 @@ export class LegalFormResolver {
     }
 
     return result as LegalFormDetail;
+  }
+
+  @Query(() => LegalForm, { nullable: true })
+  async getLegalFormByDocumentId(@Arg("document_id") document_id: number): Promise<LegalForm | null> {
+    const legalForm = await this.documentService.getUserDocumentByDocumentId(document_id);
+    const result = await this.service.getLegalFormDetailById(legalForm.legal_form_id);
+    if (!result) {
+      return null;
+    }
+
+    return result as LegalForm;
   }
   
   @Mutation(() => LegalForm)

@@ -38,7 +38,7 @@ export class UserDocumentService {
 
   public async createDocumentAndInput(
     params: CreateDocumentAndInputParams
-  ): Promise<IUserDocument> {
+  ): Promise<any> {
     const nextDocId = await this.getNextDocumentId();
 
     const userDocumentData: Partial<IUserDocument> = {
@@ -61,7 +61,28 @@ export class UserDocumentService {
 
     await this.userInputRepository.create(userInputData);
 
-    return newUserDocument;
+    const relatedLegalForm: ILegalForm | null = await this.legalFormRepository.findById(newUserDocument.legal_form_id);
+    
+    return {
+      id: newUserDocument.id,
+      document_id: newUserDocument.document_id,
+      legal_form_id: newUserDocument.legal_form_id,
+      client_id: newUserDocument.client_id,
+      status: newUserDocument.status,
+      is_client_rated: newUserDocument.is_client_rated,
+      document_rating: newUserDocument.document_rating,
+      generated_at: newUserDocument.generated_at,
+      file: newUserDocument.file,
+      createdAt: newUserDocument.createdAt,
+      updatedAt: newUserDocument.updatedAt,
+
+      legal_form: relatedLegalForm ? {
+        id: relatedLegalForm.id,
+        name: relatedLegalForm.name,
+        price: relatedLegalForm.price,
+        final_price: relatedLegalForm.final_price,
+      } : null,
+    };
   }
 
   public async getAllUserDocuments(
@@ -143,6 +164,9 @@ export class UserDocumentService {
 
   public async getUserDocumentById(id: string): Promise<IUserDocument | null> {
     return this.userDocumentRepository.findById(id);
+  }
+  public async getUserDocumentByDocumentId(documentId: number): Promise<IUserDocument | null> {
+    return this.userDocumentRepository.findByDocumentId(documentId);
   }
 
   public async updateUserDocument(

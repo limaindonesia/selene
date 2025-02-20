@@ -35,9 +35,9 @@ export class Template {
 
 @ObjectType()
 export class HomeResponse {
-  @Field(() => [Categories])
+  @Field(() => [Categories], { nullable: true })
   categories: Categories[];
 
-  @Field(() => [Template])
+  @Field(() => [Template], { nullable: true })
   templates: Template[];
 }

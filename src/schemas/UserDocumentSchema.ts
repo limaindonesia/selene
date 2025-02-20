@@ -1,5 +1,6 @@
 import { ObjectType, Field, ID, InputType, Float, Int } from "type-graphql";
 import { GraphQLJSON } from "graphql-scalars";
+import { LegalForm } from "./LegalFormSchema";
 
 @ObjectType()
 export class LegalFormDetails {
@@ -75,8 +76,6 @@ export class UserDocumentResponse {
 
 @ObjectType()
 export class UserDocument {
-  @Field(() => LegalFormDetails, { nullable: true })
-  legal_form?: LegalFormDetails;
 
   @Field(() => ID)
   id: string;
@@ -104,6 +103,9 @@ export class UserDocument {
 
   @Field(() => [String], { nullable: true })
   file?: string[];
+
+  @Field(() => LegalForm, { nullable: true })
+  legal_form?: LegalForm;
 
   @Field()
   createdAt: Date;
