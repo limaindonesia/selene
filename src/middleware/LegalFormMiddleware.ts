@@ -6,8 +6,8 @@ export const LoggingMiddleware: Middleware = async (next, ...args) => {
 };
 
 export const ValidationMiddleware: Middleware = async (next, data: any) => {
-  if (!data.title || !data.content) {
-    throw new Error("Validation failed: Title and content are required.");
+  if (!data.name || !data.description) {
+    throw new Error("Validation failed: Name and description are required.");
   }
   return await next();
 };

@@ -7,9 +7,27 @@ export class UserDocumentRepository {
     return UserDocumentModel(connection);
   }
 
-  async findAll(): Promise<IUserDocument[]> {
+  async findAllWithPagination(
+    page: number,
+    pageSize: number,
+    status?: number[]
+  ): Promise<{ totalItems: number; totalPages: number; data: IUserDocument[] }> {
     const model = await this.getModel();
-    return model.find();
+    const query = status?.length ? { status: { $in: status } } : {};
+    
+    const totalItems = await model.countDocuments(query);
+    const totalPages = Math.ceil(totalItems / pageSize);
+    const data = await model
+      .find(query)
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * pageSize)
+      .limit(pageSize);
+
+    return {
+      totalItems,
+      totalPages,
+      data,
+    };
   }
 
   async findById(id: string): Promise<IUserDocument | null> {
@@ -31,6 +49,16 @@ export class UserDocumentRepository {
   async delete(id: string): Promise<IUserDocument | null> {
     const model = await this.getModel();
     return model.findByIdAndDelete(id);
+  }
+
+  async deleteAll(): Promise<void> {
+    const model = await this.getModel();
+    await model.deleteMany({});
+  }
+
+  async findByDocumentId(document_id: number): Promise<IUserDocument | null> {
+    const model = await this.getModel();
+    return model.findOne({ document_id });
   }
 
   async getLastDocumentId(): Promise<number> {
