@@ -36,6 +36,12 @@ export class LegalFormDetails {
 }
 
 @ObjectType()
+export class PaginationLinks {
+  @Field(() => String, { nullable: true })
+  next?: string;
+}
+
+@ObjectType()
 export class Pagination {
   @Field(() => Int)
   total: number;
@@ -56,11 +62,6 @@ export class Pagination {
   links: PaginationLinks;
 }
 
-@ObjectType()
-export class PaginationLinks {
-  @Field(() => String, { nullable: true })
-  next?: string;
-}
 
 @ObjectType()
 export class UserDocumentResponse {
