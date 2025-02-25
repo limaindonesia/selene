@@ -251,10 +251,6 @@ export class LegalFormService {
         template = '';
       } else {
         formDetail = [step1Data];
-        step1Data.questions.forEach((question, index) => {
-          const placeholder = `{{Q${index + 1}}}`;
-          template = template.replace(new RegExp(placeholder, 'g'), question.details_basic?.question || "");
-        });
       }
     }
 
