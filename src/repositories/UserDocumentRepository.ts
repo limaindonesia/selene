@@ -10,15 +10,14 @@ export class UserDocumentRepository {
   async findAllWithPagination(
     page: number,
     pageSize: number,
-    status?: number[]
+    filter: any = {}
   ): Promise<{ totalItems: number; totalPages: number; data: IUserDocument[] }> {
     const model = await this.getModel();
-    const query = status?.length ? { status: { $in: status } } : {};
     
-    const totalItems = await model.countDocuments(query);
+    const totalItems = await model.countDocuments(filter);
     const totalPages = Math.ceil(totalItems / pageSize);
     const data = await model
-      .find(query)
+      .find(filter)
       .sort({ createdAt: -1 })
       .skip((page - 1) * pageSize)
       .limit(pageSize);

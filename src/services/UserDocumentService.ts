@@ -64,6 +64,7 @@ export class UserDocumentService {
     const relatedLegalForm: ILegalForm | null = await this.legalFormRepository.findById(newUserDocument.legal_form_id);
     
     return {
+      _id: newUserDocument._id,
       id: newUserDocument.id,
       document_id: newUserDocument.document_id,
       legal_form_id: newUserDocument.legal_form_id,
@@ -79,8 +80,8 @@ export class UserDocumentService {
       legal_form: relatedLegalForm ? {
         id: relatedLegalForm.id,
         name: relatedLegalForm.name,
-        price: relatedLegalForm.price,
-        final_price: relatedLegalForm.final_price,
+        price: Number(relatedLegalForm.price),
+        final_price: Number(relatedLegalForm.final_price),
       } : null,
     };
   }
@@ -88,17 +89,25 @@ export class UserDocumentService {
   public async getAllUserDocuments(
     page?: number,
     pageSize?: number,
-    status?: string[]
+    status?: number[],
+    client_id?: string
   ): Promise<UserDocumentResponse> {
     const usePagination = page !== undefined && pageSize !== undefined;
     const effectivePage = usePagination ? page : 1;
     const effectivePageSize = usePagination ? pageSize : 10;
-    const statusNumbers = status?.map(s => DocumentStatus[s as keyof typeof DocumentStatus]);
+
+    const filter: any = {};
+    if (status && status.length > 0) {
+      filter.status = { $in: status };
+    }
+    if (client_id) {
+      filter.client_id = client_id;
+    }
 
     const { data, totalItems, totalPages } = await this.userDocumentRepository.findAllWithPagination(
       effectivePage,
       effectivePageSize,
-      statusNumbers
+      filter
     );
 
     const documentsWithLegalForm = await Promise.all(
@@ -113,8 +122,8 @@ export class UserDocumentService {
             id: legalFormObj.id,
             category_id: legalFormObj.category, // Using category as category_id
             name: legalFormObj.name,
-            price: legalFormObj.price,
-            final_price: legalFormObj.final_price,
+            price: Number(legalFormObj.price),
+            final_price: Number(legalFormObj.final_price),
             description: legalFormObj.description,
             picture_url: legalFormObj.picture_url,
             category: legalFormObj.category,

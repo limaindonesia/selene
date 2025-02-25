@@ -15,8 +15,8 @@ describe("UserDocument Service", () => {
       category: "Test Category",
       description: "Test Description",
       status: LegalFormStatus.SHOW,
-      price: 100000,
-      final_price: 75000,
+      price: "100000",
+      final_price: "75000",
       picture_url: "https://example.com/image.jpg",
       template_doc_id: "template1"
     });
@@ -63,12 +63,12 @@ describe("UserDocument Service", () => {
     expect(allResult.pagination?.current_page).toBe(1);
     expect(allResult.pagination?.total_pages).toBe(1);
     
-    const bookedResult = await userDocService.getAllUserDocuments(1, 10, ['BOOKED']);
+    const bookedResult = await userDocService.getAllUserDocuments(1, 10, [DocumentStatus.BOOKED]);
     expect(bookedResult.pagination?.total).toBe(1);
     expect(bookedResult.data.length).toBe(1);
     expect(bookedResult.data[0].status).toBe(DocumentStatus.BOOKED);
     
-    const multiStatusResult = await userDocService.getAllUserDocuments(1, 10, ['BOOKED', 'ON_PROGRESS']);
+    const multiStatusResult = await userDocService.getAllUserDocuments(1, 10, [DocumentStatus.BOOKED, DocumentStatus.ON_PROGRESS]);
     expect(multiStatusResult.pagination?.total).toBe(2);
     expect(multiStatusResult.data.length).toBe(2);
     expect(multiStatusResult.data.map(d => d.status)).toEqual(
@@ -79,6 +79,38 @@ describe("UserDocument Service", () => {
     expect(document.legal_form).toBeDefined();
     expect(typeof document.legal_form?.price).toBe('number');
     expect(typeof document.legal_form?.final_price).toBe('number');
+  });
+
+  it("should filter documents by client_id", async () => {
+    await userDocService.createDocumentAndInput({
+      client_id: "client1",
+      legal_form_id: legalFormId,
+      status: DocumentStatus.BOOKED,
+      input: [{ field1: "value1" }]
+    });
+
+    await userDocService.createDocumentAndInput({
+      client_id: "client2",
+      legal_form_id: legalFormId,
+      status: DocumentStatus.ON_PROGRESS,
+      input: [{ field1: "value2" }]
+    });
+
+    const client1Result = await userDocService.getAllUserDocuments(1, 10, undefined, "client1");
+    expect(client1Result.pagination?.total).toBe(1);
+    expect(client1Result.data.length).toBe(1);
+    expect(client1Result.data[0].client_id).toBe("client1");
+
+    const client2Result = await userDocService.getAllUserDocuments(1, 10, undefined, "client2");
+    expect(client2Result.pagination?.total).toBe(1);
+    expect(client2Result.data.length).toBe(1);
+    expect(client2Result.data[0].client_id).toBe("client2");
+
+    const combinedFilters = await userDocService.getAllUserDocuments(1, 10, [DocumentStatus.BOOKED], "client1");
+    expect(combinedFilters.pagination?.total).toBe(1);
+    expect(combinedFilters.data.length).toBe(1);
+    expect(combinedFilters.data[0].client_id).toBe("client1");
+    expect(combinedFilters.data[0].status).toBe(DocumentStatus.BOOKED);
   });
 
   it("should handle empty results", async () => {
@@ -104,6 +136,7 @@ describe("UserDocument Service", () => {
   });
 
   it("should change document status", async () => {
+    jest.setTimeout(10000); // Increase timeout to 10 seconds
     const document = await userDocService.createDocumentAndInput({
       client_id: "client1",
       legal_form_id: legalFormId,

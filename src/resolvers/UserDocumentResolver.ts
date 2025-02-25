@@ -16,13 +16,14 @@ export class UserDocumentResolver {
     @Arg("page", () => Int, { nullable: true }) page?: number,
     @Arg("limit", () => Int, { nullable: true }) limit?: number,
     @Arg("skip", () => Int, { nullable: true }) skip?: number,
-    @Arg("status", () => [String], { nullable: true }) status?: string[],
+    @Arg("status", () => [Int], { nullable: true }) status?: number[],
+    @Arg("client_id", () => String, { nullable: true }) client_id?: string,
     @Arg("paginate", () => Boolean, { nullable: true }) paginate?: boolean
   ): Promise<UserDocumentResponse> {
     if (paginate) {
-      return this.service.getAllUserDocuments(page || 1, limit || 10, status);
+      return this.service.getAllUserDocuments(page || 1, limit || 10, status, client_id);
     } else {
-      return this.service.getAllUserDocuments(undefined, undefined, status);
+      return this.service.getAllUserDocuments(undefined, undefined, status, client_id);
     }
   }
 
