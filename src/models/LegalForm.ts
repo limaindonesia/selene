@@ -12,11 +12,30 @@ export interface ILegalForm extends Document {
   picture_url: string;
   template_doc_id: string;
   is_highlight: boolean;
-  form_detail: any[];
+  form_detail: FormDetail[];
   rating: string;
   total_created: number;
   createdAt: Date;
   updatedAt: Date;
+}
+
+export interface Question {
+  no: number;
+  element_type: string;
+  details_basic: {
+    question: string;
+    type: string;
+    placeholder: string;
+    formatting_type: string;
+    is_mandatory: boolean;
+    hint: string;
+  };
+  details_advance?: any
+}
+
+export interface FormDetail {
+  step: number;
+  questions: Question[];
 }
 
 export interface ILegalCategory extends Document {
@@ -35,6 +54,7 @@ const LegalFormSchema = new Schema<ILegalForm>({
   picture_url: { type: String, required: true },
   template_doc_id: { type: String, required: true },
   is_highlight: { type: Boolean, required: false },
+  form_detail: { type: [], required: false },
 }, { timestamps: true });
 
 LegalFormSchema.virtual("id").get(function () {
