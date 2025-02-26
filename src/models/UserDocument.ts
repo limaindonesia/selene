@@ -9,6 +9,7 @@ export interface IUserDocument extends Document {
   is_client_rated: boolean;
   document_rating: number;
   generated_at: Date;
+  generated_html: string;
   file: any[];
   createdAt: Date;
   updatedAt: Date;
@@ -22,6 +23,8 @@ const UserDocumentSchema = new Schema<IUserDocument>({
   is_client_rated: { type: Boolean, required: false },
   document_rating: { type: Number, required: false },
   generated_at: { type: Date, required: false },
+  generated_html: { type: String, required: false },
+  file: { type: [String], required: false, default: [] },
 }, { timestamps: true });
 
 UserDocumentSchema.virtual("id").get(function () {

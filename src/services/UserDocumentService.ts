@@ -6,6 +6,15 @@ import { IUserInput } from "../models/UserInput";
 import { ILegalForm } from "../models/LegalForm";
 import { UserDocument, UserDocumentResponse, LegalFormDetails } from "../schemas/UserDocumentSchema";
 import { DocumentStatus } from "../enums/DocumentStatus.enum";
+import { QueueService } from "./QueueService";
+import { StorageService } from "./StorageService";
+import { PdfGeneratorService } from "./PdfGeneratorService";
+import path from 'path';
+import os from 'os';
+import fs from 'fs';
+import { promisify } from 'util';
+
+const unlinkAsync = promisify(fs.unlink);
 
 interface CreateDocumentAndInputParams {
   client_id: string;
@@ -22,11 +31,15 @@ export class UserDocumentService {
   private userDocumentRepository: UserDocumentRepository;
   private userInputRepository: UserInputRepository;
   private legalFormRepository: LegalFormRepository;
+  private storageService: StorageService;
+  private pdfGeneratorService: PdfGeneratorService;
 
   constructor() {
     this.userDocumentRepository = new UserDocumentRepository();
     this.userInputRepository = new UserInputRepository();
     this.legalFormRepository = new LegalFormRepository();
+    this.storageService = new StorageService();
+    this.pdfGeneratorService = new PdfGeneratorService();
   }
 
 
@@ -191,5 +204,148 @@ export class UserDocumentService {
 
   public async deleteAllUserDocuments(): Promise<void> {
     return this.userDocumentRepository.deleteAll();
+  }
+
+  /**
+   * Verify that a client has access to a document
+   * @param client_id Client ID from header
+   * @param document_id Document ID
+   * @throws Error if client does not have access to document
+   */
+  public async verifyClientAccess(client_id: string, document_id: number): Promise<void> {
+    const existingDocument = await this.userDocumentRepository.findByDocumentId(document_id);
+    if (!existingDocument) {
+      throw new Error('Document not found');
+    }
+
+    if (existingDocument.client_id !== client_id) {
+      throw new Error('Document not found');
+    }
+  }
+
+  /**
+   * Get the status of a PDF generation job
+   * @param jobId Job ID
+   * @returns Job status
+   */
+  public async getJobStatus(jobId: string): Promise<any> {
+    return QueueService.getPdfGenerationJobStatus(jobId);
+  }
+
+  /**
+   * Generate a document from HTML
+   * @param document_id Document ID
+   * @param generated_html HTML content
+   * @returns Job ID
+   */
+  public async generateDocument(document_id: number, generated_html: string): Promise<string> {
+    const existingDocument = await this.userDocumentRepository.findByDocumentId(document_id);
+    if (!existingDocument) {
+      throw new Error('Document not found');
+    }
+
+    await this.userDocumentRepository.update(existingDocument.id, {
+      status: DocumentStatus.GENERATING,
+      generated_html,
+    });
+
+    const jobId = await QueueService.addPdfGenerationJob(document_id, generated_html);
+    return jobId;
+  }
+
+  /**
+   * Regenerate a document
+   * @param document_id Document ID
+   * @returns Job ID
+   */
+  public async regenerateDocument(document_id: number): Promise<string> {
+    const existingDocument = await this.userDocumentRepository.findByDocumentId(document_id);
+    if (!existingDocument) {
+      throw new Error('Document not found');
+    }
+
+    if (existingDocument.status !== DocumentStatus.GENERATING) {
+      throw new Error(`Document is not in GENERATING status. Current status: ${existingDocument.status}`);
+    }
+
+    if (!existingDocument.generated_html) {
+      throw new Error('Document HTML not found');
+    }
+
+    const jobId = await QueueService.addPdfGenerationJob(document_id, existingDocument.generated_html);
+    return jobId;
+  }
+
+  /**
+   * Get document file path in Google Cloud Storage
+   * @param document_id Document ID
+   * @returns File path
+   */
+  private getDocumentFilePath(document_id: number): string {
+    return `legal-forms/documents/${document_id}.pdf`;
+  }
+
+  /**
+   * Download a document
+   * @param document_id Document ID
+   * @returns Local file path
+   */
+  public async downloadDocument(document_id: number): Promise<string> {
+    const existingDocument = await this.userDocumentRepository.findByDocumentId(document_id);
+    if (!existingDocument) {
+      throw new Error('Document not found');
+    }
+
+    if (existingDocument.status !== DocumentStatus.COMPLETED) {
+      throw new Error(`Document is not ready for download. Current status: ${existingDocument.status}`);
+    }
+
+    if (!existingDocument.file || existingDocument.file.length === 0) {
+      throw new Error('Document file not found');
+    }
+
+    const gcsPath = this.getDocumentFilePath(document_id);
+    
+    const fileExists = await this.storageService.fileExists(gcsPath);
+    if (!fileExists) {
+      throw new Error('Document file not found in storage');
+    }
+
+    const tempDir = path.join(os.tmpdir(), 'pdf-downloads');
+    await promisify(fs.mkdir)(tempDir, { recursive: true });
+    
+    const localPath = path.join(tempDir, `document-${document_id}.pdf`);
+    await this.storageService.downloadFile(gcsPath, localPath);
+    
+    return localPath;
+  }
+
+  /**
+   * Get a stream for a document
+   * @param document_id Document ID
+   * @returns Stream
+   */
+  public async getDocumentStream(document_id: number) {
+    const existingDocument = await this.userDocumentRepository.findByDocumentId(document_id);
+    if (!existingDocument) {
+      throw new Error('Document not found');
+    }
+
+    if (existingDocument.status !== DocumentStatus.COMPLETED) {
+      throw new Error(`Document is not ready for streaming. Current status: ${existingDocument.status}`);
+    }
+
+    if (!existingDocument.file || existingDocument.file.length === 0) {
+      throw new Error('Document file not found');
+    }
+
+    const gcsPath = this.getDocumentFilePath(document_id);
+    
+    const fileExists = await this.storageService.fileExists(gcsPath);
+    if (!fileExists) {
+      throw new Error('Document file not found in storage');
+    }
+
+    return this.storageService.getFileStream(gcsPath);
   }
 }
