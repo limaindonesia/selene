@@ -64,7 +64,6 @@ export class UserDocumentService {
     const relatedLegalForm: ILegalForm | null = await this.legalFormRepository.findById(newUserDocument.legal_form_id);
     
     return {
-      _id: newUserDocument._id,
       id: newUserDocument.id,
       document_id: newUserDocument.document_id,
       legal_form_id: newUserDocument.legal_form_id,
