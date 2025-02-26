@@ -1,3 +1,4 @@
+require("reflect-metadata");
 const { MongoMemoryServer } = require("mongodb-memory-server");
 const mongoose = require("mongoose");
 require('dotenv').config({ path: '.env.test' });

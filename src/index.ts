@@ -13,7 +13,8 @@ import {
   LegalFormResolver,
   CategoryResolver,
   UserDocumentResolver,
-  UserInputResolver
+  UserInputResolver,
+  LegalFormRatingResolver
 } from "./resolvers";
 
 async function main() {
@@ -30,7 +31,8 @@ async function main() {
             LegalFormResolver,
             CategoryResolver,
             UserDocumentResolver,
-            UserInputResolver
+            UserInputResolver,
+            LegalFormRatingResolver
         ],
         validate: false
     });

@@ -1,7 +1,7 @@
 import { LegalFormRatingModel, ILegalFormRating } from "../models/LegalFormRating";
 import { connectDB2 } from "../config/mongoConfig";
 
-export class UserInputRepository {
+export class LegalFormRatingRepository {
   private async getModel() {
     const connection = await connectDB2();
     return LegalFormRatingModel(connection);
@@ -31,5 +31,15 @@ export class UserInputRepository {
   async delete(id: string): Promise<ILegalFormRating | null> {
     const model = await this.getModel();
     return await model.findByIdAndDelete(id);
+  }
+
+  async findByLegalFormId(legal_form_id: string): Promise<ILegalFormRating[]> {
+    const model = await this.getModel();
+    return await model.find({ legal_form_id });
+  }
+
+  async findByDocumentId(document_id: string): Promise<ILegalFormRating | null> {
+    const model = await this.getModel();
+    return await model.findOne({ document_id });
   }
 }
