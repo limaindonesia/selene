@@ -88,7 +88,7 @@ export class UserDocument {
   legal_form_id: string;
 
   @Field()
-  client_id: string;
+  client_id: number;
 
   @Field()
   status: number;
@@ -121,7 +121,7 @@ export class UserDocumentInput {
   legal_form_id: string;
 
   @Field()
-  client_id: string;
+  client_id: number;
 
   @Field()
   status: number;
@@ -142,7 +142,7 @@ export class UserDocumentInput {
 @InputType()
 export class CreateDocumentWithInput {
   @Field()
-  client_id: string;
+  client_id: number;
 
   @Field()
   legal_form_id: string;
@@ -162,6 +162,6 @@ export class CreateDocumentWithInput {
   @Field({ nullable: true })
   file?: string;
 
-  @Field(() => GraphQLJSON)
+  @Field(() => GraphQLJSON, { nullable: true })
   input: any;
 }

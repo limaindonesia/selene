@@ -8,7 +8,7 @@ import { UserDocument, UserDocumentResponse, LegalFormDetails } from "../schemas
 import { DocumentStatus } from "../enums/DocumentStatus.enum";
 
 interface CreateDocumentAndInputParams {
-  client_id: string;
+  client_id: number;
   legal_form_id: string;
   status: number;
   is_client_rated?: boolean;

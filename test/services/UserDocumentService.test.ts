@@ -15,8 +15,8 @@ describe("UserDocument Service", () => {
       category: "Test Category",
       description: "Test Description",
       status: LegalFormStatus.SHOW,
-      price: 100000,
-      final_price: 75000,
+      price: "100000",
+      final_price: "75000",
       picture_url: "https://example.com/image.jpg",
       template_doc_id: "template1"
     });
@@ -29,27 +29,27 @@ describe("UserDocument Service", () => {
 
   it("should create a document with input", async () => {
     const document = await userDocService.createDocumentAndInput({
-      client_id: "client1",
+      client_id: 1,
       legal_form_id: legalFormId,
       status: DocumentStatus.BOOKED,
       input: [{ field1: "value1" }]
     });
 
     expect(document._id).toBeDefined();
-    expect(document.client_id).toBe("client1");
+    expect(document.client_id).toBe(1);
     expect(document.legal_form_id).toBe(legalFormId);
   });
 
   it("should get paginated user documents with legal form details", async () => {
     await userDocService.createDocumentAndInput({
-      client_id: "client1",
+      client_id: 1,
       legal_form_id: legalFormId,
       status: DocumentStatus.BOOKED,
       input: [{ field1: "value1" }]
     });
 
     await userDocService.createDocumentAndInput({
-      client_id: "client2",
+      client_id: 2,
       legal_form_id: legalFormId,
       status: DocumentStatus.ON_PROGRESS,
       input: [{ field1: "value2" }]
@@ -92,7 +92,7 @@ describe("UserDocument Service", () => {
 
   it("should return non-paginated results when pageSize is not provided", async () => {
     await userDocService.createDocumentAndInput({
-      client_id: "client1",
+      client_id: 1,
       legal_form_id: legalFormId,
       status: DocumentStatus.BOOKED,
       input: [{ field1: "value1" }]
@@ -105,7 +105,7 @@ describe("UserDocument Service", () => {
 
   it("should change document status", async () => {
     const document = await userDocService.createDocumentAndInput({
-      client_id: "client1",
+      client_id: 1,
       legal_form_id: legalFormId,
       status: DocumentStatus.BOOKED,
       input: [{ field1: "value1" }]

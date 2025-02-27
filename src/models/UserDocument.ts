@@ -4,7 +4,7 @@ export interface IUserDocument extends Document {
   id: string;
   document_id: number;
   legal_form_id: string;
-  client_id: string;
+  client_id: number;
   status: number;
   is_client_rated: boolean;
   document_rating: number;
@@ -17,7 +17,7 @@ export interface IUserDocument extends Document {
 const UserDocumentSchema = new Schema<IUserDocument>({
   document_id: { type: Number, required: true, unique: true},
   legal_form_id: { type: String, required: true },
-  client_id: { type: String, required: true },
+  client_id: { type: Number, required: true },
   status: { type: Number, required: true },
   is_client_rated: { type: Boolean, required: false },
   document_rating: { type: Number, required: false },
