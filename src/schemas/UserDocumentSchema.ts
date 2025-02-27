@@ -102,6 +102,9 @@ export class UserDocument {
   @Field({ nullable: true })
   generated_at?: Date;
 
+  @Field({ nullable: true })
+  generated_html?: string;
+
   @Field(() => [String], { nullable: true })
   file?: string[];
 
@@ -135,6 +138,9 @@ export class UserDocumentInput {
   @Field({ nullable: true })
   generated_at?: Date;
 
+  @Field({ nullable: true })
+  generated_html?: string;
+
   @Field(() => [String], { nullable: true })
   file?: string[];
 }
@@ -160,8 +166,50 @@ export class CreateDocumentWithInput {
   generated_at?: string;
 
   @Field({ nullable: true })
+  generated_html?: string;
+
+  @Field({ nullable: true })
   file?: string;
 
   @Field(() => GraphQLJSON, { nullable: true })
   input: any;
+}
+
+@ObjectType()
+export class DocumentGenerationResponse {
+  @Field()
+  success: boolean;
+
+  @Field({ nullable: true })
+  message?: string;
+
+  @Field(() => Int)
+  document_id: number;
+
+  @Field({ nullable: true })
+  job_id?: string;
+
+  @Field()
+  status: string;
+}
+
+@ObjectType()
+export class DocumentJobResponse {
+  @Field()
+  success: boolean;
+
+  @Field()
+  job_id: string;
+
+  @Field({ nullable: true })
+  message?: string;
+
+  @Field()
+  status: string;
+
+  @Field(() => Float, { nullable: true })
+  progress?: number;
+
+  @Field(() => GraphQLJSON, { nullable: true })
+  result?: any;
 }

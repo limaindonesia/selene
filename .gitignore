@@ -1,7 +1,12 @@
 node_modules
 build
-
+dist
 
 # dotenv environment variable files
 .env
 .env.test
+
+# Local storage files
+storage/local/
+storage/local/documents/
+storage/local/public/

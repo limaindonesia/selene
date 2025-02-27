@@ -1,7 +1,17 @@
-import { Resolver, Query, Mutation, Arg, Int } from "type-graphql";
+import { Resolver, Query, Mutation, Arg, Int, Ctx } from "type-graphql";
 import { UserDocumentService } from "../services/UserDocumentService";
-import { UserDocument, UserDocumentResponse, CreateDocumentWithInput } from "../schemas/UserDocumentSchema";
+import { UserDocument, UserDocumentResponse, CreateDocumentWithInput, DocumentGenerationResponse, DocumentJobResponse } from "../schemas/UserDocumentSchema";
 import { DocumentStatus } from "../enums/DocumentStatus.enum";
+import { createReadStream } from "fs";
+import { Response } from "express";
+import path from "path";
+import { Stream } from "stream";
+
+interface Context {
+  req?: Request;
+  res: Response;
+  clientId?: string;
+}
 
 @Resolver()
 export class UserDocumentResolver {
@@ -53,5 +63,244 @@ export class UserDocumentResolver {
     @Arg("status", () => Int) status: DocumentStatus
   ): Promise<UserDocument> {
     return await this.service.changeUserDocumentStatus(document_id, status);
+  }
+
+  /**
+   * Generate a document from HTML
+   */
+  @Mutation(() => DocumentGenerationResponse)
+  async generateDocument(
+    @Arg("document_id", () => Int) document_id: number,
+    @Arg("generated_html") generated_html: string,
+    @Ctx() { clientId }: Context
+  ): Promise<DocumentGenerationResponse> {
+    try {
+      // Verify client has access to this document
+      if (!clientId) {
+        return {
+          success: false,
+          message: "Missing required header: client_id",
+          document_id,
+          status: "failed"
+        };
+      }
+
+      // Verify client has access to this document
+      try {
+        await this.service.verifyClientAccess(clientId, document_id);
+      } catch (error) {
+        return {
+          success: false,
+          message: "Document not found",
+          document_id,
+          status: "failed"
+        };
+      }
+      
+      const jobId = await this.service.generateDocument(document_id, generated_html);
+      
+      return {
+        success: true,
+        message: "Document generation started",
+        document_id,
+        job_id: jobId,
+        status: "processing"
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error instanceof Error ? error.message : String(error),
+        document_id,
+        status: "failed"
+      };
+    }
+  }
+
+  /**
+   * Regenerate a document
+   */
+  @Mutation(() => DocumentGenerationResponse)
+  async regenerateDocument(
+    @Arg("document_id", () => Int) document_id: number,
+    @Ctx() { clientId }: Context
+  ): Promise<DocumentGenerationResponse> {
+    try {
+      // Verify client has access to this document
+      if (!clientId) {
+        return {
+          success: false,
+          message: "Missing required header: client_id",
+          document_id,
+          status: "failed"
+        };
+      }
+
+      try {
+        await this.service.verifyClientAccess(clientId, document_id);
+      } catch (error) {
+        return {
+          success: false,
+          message: "Document not found",
+          document_id,
+          status: "failed"
+        };
+      }
+      
+      const jobId = await this.service.regenerateDocument(document_id);
+      
+      return {
+        success: true,
+        message: "Document regeneration started",
+        document_id,
+        job_id: jobId,
+        status: "processing"
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error instanceof Error ? error.message : String(error),
+        document_id,
+        status: "failed"
+      };
+    }
+  }
+
+  /**
+   * Get document job status
+   */
+  @Query(() => DocumentJobResponse)
+  async getDocumentJobStatus(
+    @Arg("job_id") job_id: string,
+    @Ctx() { clientId }: Context
+  ): Promise<DocumentJobResponse> {
+    try {
+      if (!clientId) {
+        return {
+          success: false,
+          job_id,
+          message: "Missing required header: client_id",
+          status: "error"
+        };
+      }
+      
+      const jobStatus = await this.service.getJobStatus(job_id);
+      
+      return {
+        success: true,
+        job_id,
+        status: jobStatus.status,
+        progress: jobStatus.progress,
+        result: jobStatus.result
+      };
+    } catch (error) {
+      return {
+        success: false,
+        job_id,
+        message: error instanceof Error ? error.message : String(error),
+        status: "error"
+      };
+    }
+  }
+
+  /**
+   * Download a document
+   */
+  @Query(() => Boolean)
+  async downloadDocument(
+    @Arg("document_id", () => Int) document_id: number,
+    @Ctx() { res, clientId }: Context
+  ): Promise<boolean> {
+    try {
+      if (!clientId) {
+        res.status(401).json({
+          success: false,
+          message: "Missing required header: client_id"
+        });
+        return false;
+      }
+
+      try {
+        await this.service.verifyClientAccess(clientId, document_id);
+      } catch (error) {
+        res.status(404).json({
+          success: false,
+          message: "Document not found"
+        });
+        return false;
+      }
+      
+      const filePath = await this.service.downloadDocument(document_id);
+      
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="document-${document_id}.pdf"`);
+      
+      // Stream the file
+      const fileStream = createReadStream(filePath);
+      fileStream.pipe(res);
+      
+      return true;
+    } catch (error) {
+      res.status(404).json({
+        success: false,
+        message: error instanceof Error ? error.message : String(error)
+      });
+      return false;
+    }
+  }
+
+  /**
+   * Stream a document
+   */
+  @Query(() => Boolean)
+  async streamDocument(
+    @Arg("document_id", () => Int) document_id: number,
+    @Ctx() { res, clientId }: Context
+  ): Promise<boolean> {
+    try {
+      if (!clientId) {
+        res.status(401).json({
+          success: false,
+          message: "Missing required header: client_id"
+        });
+        return false;
+      }
+
+      try {
+        await this.service.verifyClientAccess(clientId, document_id);
+      } catch (error) {
+        res.status(404).json({
+          success: false,
+          message: "Document not found"
+        });
+        return false;
+      }
+      
+      const stream = await this.service.getDocumentStream(document_id);
+      
+      // Set headers for streaming
+      res.setHeader('Content-Type', 'application/pdf');
+      
+      // For mobile clients, we can use inline content disposition
+      // or application/octet-stream content type
+      const userAgent = res.req.headers['user-agent'] || '';
+      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent);
+      
+      if (isMobile) {
+        res.setHeader('Content-Type', 'application/octet-stream');
+        res.setHeader('Content-Disposition', `attachment; filename="document-${document_id}.pdf"`);
+      } else {
+        res.setHeader('Content-Disposition', `inline; filename="document-${document_id}.pdf"`);
+      }
+      
+      stream.pipe(res);
+      
+      return true;
+    } catch (error) {
+      res.status(404).json({
+        success: false,
+        message: error instanceof Error ? error.message : String(error)
+      });
+      return false;
+    }
   }
 }
