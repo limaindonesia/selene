@@ -21,9 +21,10 @@ const pdfQueue = new Bull('pdf-generation', {
 
 const pdfGeneratorService = new PdfGeneratorService();
 const storageService = new StorageService();
-const userDocumentService = new UserDocumentService();
 
 pdfQueue.process(async (job) => {
+  // Create service instances inside the process function to avoid circular dependencies
+  const userDocumentService = new UserDocumentService();
   const { document_id, html } = job.data;
   
   try {

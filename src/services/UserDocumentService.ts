@@ -6,7 +6,8 @@ import { IUserInput } from "../models/UserInput";
 import { ILegalForm } from "../models/LegalForm";
 import { UserDocument, UserDocumentResponse, LegalFormDetails } from "../schemas/UserDocumentSchema";
 import { DocumentStatus } from "../enums/DocumentStatus.enum";
-import { QueueService } from "./QueueService";
+// Import QueueService statically to avoid circular dependency
+import * as QueueServiceModule from "./QueueService";
 import { StorageService } from "./StorageService";
 import { PdfGeneratorService } from "./PdfGeneratorService";
 import path from 'path';
@@ -126,8 +127,8 @@ export class UserDocumentService {
             id: legalFormObj.id,
             category_id: legalFormObj.category, // Using category as category_id
             name: legalFormObj.name,
-            price: legalFormObj.price,
-            final_price: legalFormObj.final_price,
+            price: Number(legalFormObj.price),
+            final_price: Number(legalFormObj.final_price),
             description: legalFormObj.description,
             picture_url: legalFormObj.picture_url,
             category: legalFormObj.category,
@@ -218,7 +219,7 @@ export class UserDocumentService {
       throw new Error('Document not found');
     }
 
-    if (existingDocument.client_id !== client_id) {
+    if (existingDocument.client_id !== Number(client_id)) {
       throw new Error('Document not found');
     }
   }
@@ -229,7 +230,7 @@ export class UserDocumentService {
    * @returns Job status
    */
   public async getJobStatus(jobId: string): Promise<any> {
-    return QueueService.getPdfGenerationJobStatus(jobId);
+    return QueueServiceModule.QueueService.getPdfGenerationJobStatus(jobId);
   }
 
   /**
@@ -249,7 +250,7 @@ export class UserDocumentService {
       generated_html,
     });
 
-    const jobId = await QueueService.addPdfGenerationJob(document_id, generated_html);
+    const jobId = await QueueServiceModule.QueueService.addPdfGenerationJob(document_id, generated_html);
     return jobId;
   }
 
@@ -272,7 +273,7 @@ export class UserDocumentService {
       throw new Error('Document HTML not found');
     }
 
-    const jobId = await QueueService.addPdfGenerationJob(document_id, existingDocument.generated_html);
+    const jobId = await QueueServiceModule.QueueService.addPdfGenerationJob(document_id, existingDocument.generated_html);
     return jobId;
   }
 

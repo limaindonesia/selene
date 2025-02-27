@@ -35,7 +35,7 @@ describe("UserDocument Service", () => {
       input: [{ field1: "value1" }]
     });
 
-    expect(document._id).toBeDefined();
+    expect(document.id).toBeDefined();
     expect(document.client_id).toBe(1);
     expect(document.legal_form_id).toBe(legalFormId);
   });

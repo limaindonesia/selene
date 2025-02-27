@@ -13,7 +13,8 @@ import {
   LegalFormResolver,
   CategoryResolver,
   UserDocumentResolver,
-  UserInputResolver
+  UserInputResolver,
+  LegalFormRatingResolver
 } from "./resolvers";
 
 // Create directory for storage keys if it doesn't exist
@@ -36,7 +37,8 @@ async function main() {
             LegalFormResolver,
             CategoryResolver,
             UserDocumentResolver,
-            UserInputResolver
+            UserInputResolver,
+            LegalFormRatingResolver
         ],
         validate: false
     });

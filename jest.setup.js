@@ -1,4 +1,4 @@
-require('reflect-metadata');
+require("reflect-metadata");
 
 const { MongoMemoryServer } = require("mongodb-memory-server");
 const mongoose = require("mongoose");
