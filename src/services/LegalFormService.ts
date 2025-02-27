@@ -1,7 +1,7 @@
 import { LegalFormRepository } from "../repositories/LegalFormRepository";
 import { LegalFormTemplateRepository } from "../repositories/LegalFormTemplateRepository";
 import { CategoryRepository } from "../repositories/CategoryRepository";
-import { ILegalForm } from "../models/LegalForm";
+import { ILegalForm, FormDetail } from "../models/LegalForm";
 import { ILegalFormTemplate } from "../models/LegalFormTemplate";
 import { LoggingMiddleware, ValidationMiddleware, ExecutionTimeMiddleware } from "../middleware/LegalFormMiddleware";
 
@@ -226,7 +226,7 @@ export class LegalFormService {
     return formattedData;
   }
 
-  public async getLegalFormWithTemplate(id: string): Promise<any | null> {
+  public async getLegalFormWithTemplate(id: string, preview: boolean = false): Promise<any | null> {
     const legalForm: ILegalForm | null = await this.repository.findById(id);
     if (!legalForm) {
       return null;
@@ -238,6 +238,22 @@ export class LegalFormService {
 
     const category = await this.categoryRepository.findByStringId(legalForm.category);
 
+    let template = templateDoc ? templateDoc.template : "";
+
+    let formDetail: FormDetail[] = legalForm.form_detail;
+    
+    if (preview) {
+
+      const step1Data = formDetail.find((form) => form.step === 1);
+
+      if (!step1Data) {
+        formDetail = [];
+        template = '';
+      } else {
+        formDetail = [step1Data];
+      }
+    }
+
     const finalResult = {
       id: legalForm.id,
       name: legalForm.name,
@@ -248,7 +264,8 @@ export class LegalFormService {
       category: category.name,
       rating: "4.0",
       total_created: 300,
-      template: templateDoc ? templateDoc.template : "",
+      template: template,
+      form_detail: formDetail,
     };
 
     return finalResult;

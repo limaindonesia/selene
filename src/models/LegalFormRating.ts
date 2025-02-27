@@ -5,6 +5,7 @@ export interface ILegalFormRating extends Document {
   legal_form_id: string;
   document_id: string;
   rating: number;
+  description?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -13,6 +14,7 @@ const LegalFormRatingSchema = new Schema<ILegalFormRating>({
     legal_form_id: { type: String, required: true },
     document_id: { type: String, required: true },
     rating: { type: Number, required: true },
+    description: { type: String, required: false },
 }, { timestamps: true });
 
 LegalFormRatingSchema.virtual("id").get(function () {
