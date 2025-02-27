@@ -70,7 +70,7 @@ export class PaginatedLegalForms {
 
 @ObjectType()
 export class LegalFormDetail {
-  @Field()
+  @Field(() => ID)
   id: string;
 
   @Field()
@@ -91,12 +91,16 @@ export class LegalFormDetail {
   @Field()
   category: string;
 
-  @Field()
+  @Field({ nullable: true })
   rating: string;
 
-  @Field()
+  @Field({ nullable: true })
   total_created: number;
-
+  
   @Field()
   template: string;
+
+  @Field(() => [GraphQLJSON], { nullable: true })
+  form_detail?: any[];
+
 }

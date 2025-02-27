@@ -17,6 +17,12 @@ import {
   LegalFormRatingResolver
 } from "./resolvers";
 
+// Create directory for storage keys if it doesn't exist
+import fs from 'fs';
+import path from 'path';
+const storageDir = path.join(__dirname, '..', 'storage', 'keys');
+fs.mkdirSync(storageDir, { recursive: true });
+
 async function main() {
     const app = express();
 
@@ -51,7 +57,13 @@ async function main() {
     app.use(
         "/graphql",
         express.json(),
-        expressMiddleware(server)
+        expressMiddleware(server, {
+            context: async ({ req, res }) => ({ 
+                req, 
+                res,
+                clientId: req.headers['client_id'] as string 
+            }),
+        })
     );
 
     const PORT = env.port;

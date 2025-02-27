@@ -17,6 +17,19 @@ const env = {
     username: process.env.MONGO2_USERNAME || 'root',
     password: process.env.MONGO2_PASSWORD || '',
   },
+  redis: {
+    host: process.env.REDIS_HOST || 'localhost',
+    port: parseInt(process.env.REDIS_PORT || '6379'),
+    password: process.env.REDIS_PASSWORD || '',
+  },
+  gcs: {
+    projectId: process.env.GOOGLE_CLOUD_PROJECT_ID || '',
+    keyFilename: process.env.GOOGLE_CLOUD_KEY_FILE || '',
+    bucket: process.env.GOOGLE_CLOUD_STORAGE_BUCKET || '',
+    pathPrefix: process.env.GOOGLE_CLOUD_STORAGE_PATH_PREFIX || '',
+    bucketPublic: process.env.GOOGLE_CLOUD_STORAGE_BUCKET_PUBLIC || '',
+    pathPrefixPublic: process.env.GOOGLE_CLOUD_STORAGE_PATH_PREFIX_PUBLIC || '',
+  }
 }
 
 export default env;
