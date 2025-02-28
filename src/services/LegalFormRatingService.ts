@@ -15,11 +15,11 @@ export class LegalFormRatingService {
   }
 
   async rateLegalForm(
-    document_id: string,
+    document_id: number,
     rating: number,
     description?: string
   ): Promise<any> {
-    const document = await this.documentRepository.findByDocumentId(Number(document_id));
+    const document = await this.documentRepository.findByDocumentId(document_id);
     if (!document) {
       throw new Error("Document not found");
     }

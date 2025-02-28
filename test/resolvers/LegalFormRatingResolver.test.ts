@@ -19,7 +19,7 @@ describe("LegalFormRatingResolver", () => {
 
   describe("rateLegalForm", () => {
     const mockInput = {
-      document_id: "123",
+      document_id: 123,
       rating: 4,
       description: "Document is good"
     };
@@ -45,7 +45,10 @@ describe("LegalFormRatingResolver", () => {
       expect(response).toEqual({
         success: true,
         message: "Document rating saved successfully.",
-        data: mockResult
+        data: {
+          ...mockResult,
+          document_id: 123
+        }
       });
     });
 

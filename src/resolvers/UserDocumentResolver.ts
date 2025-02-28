@@ -37,8 +37,21 @@ export class UserDocumentResolver {
   }
 
   @Query(() => UserDocument, { nullable: true })
-  async getUserDocument(@Arg("id") id: string): Promise<UserDocument | null> {
-    return this.service.getUserDocumentById(id);
+  async getUserDocument(
+    @Arg("id") id: string,
+    @Ctx() { clientId }: Context
+  ): Promise<UserDocument | null> {
+    if (!clientId) {
+      throw new Error("Missing required header: client_id");
+    }
+    
+    const document = await this.service.getUserDocumentById(id);
+    
+    if (document && document.client_id !== Number(clientId)) {
+      throw new Error("Document not found");
+    }
+    
+    return document;
   }
 
   @Mutation(() => UserDocument)
@@ -77,24 +90,28 @@ export class UserDocumentResolver {
     try {
       // Verify client has access to this document
       if (!clientId) {
-        return {
-          success: false,
-          message: "Missing required header: client_id",
+      return {
+        success: false,
+        message: "Missing required header: client_id",
+        data: {
           document_id,
           status: "failed"
-        };
+        }
+      };
       }
 
       // Verify client has access to this document
       try {
         await this.service.verifyClientAccess(clientId, document_id);
       } catch (error) {
-        return {
-          success: false,
-          message: "Document not found",
+      return {
+        success: false,
+        message: "Document not found",
+        data: {
           document_id,
           status: "failed"
-        };
+        }
+      };
       }
       
       const jobId = await this.service.generateDocument(document_id, generated_html);
@@ -102,16 +119,20 @@ export class UserDocumentResolver {
       return {
         success: true,
         message: "Document generation started",
-        document_id,
-        job_id: jobId,
-        status: "processing"
+        data: {
+          document_id,
+          job_id: jobId,
+          status: "processing"
+        }
       };
     } catch (error) {
       return {
         success: false,
         message: error instanceof Error ? error.message : String(error),
-        document_id,
-        status: "failed"
+        data: {
+          document_id,
+          status: "failed"
+        }
       };
     }
   }
@@ -127,23 +148,27 @@ export class UserDocumentResolver {
     try {
       // Verify client has access to this document
       if (!clientId) {
-        return {
-          success: false,
-          message: "Missing required header: client_id",
+      return {
+        success: false,
+        message: "Missing required header: client_id",
+        data: {
           document_id,
           status: "failed"
-        };
+        }
+      };
       }
 
       try {
         await this.service.verifyClientAccess(clientId, document_id);
       } catch (error) {
-        return {
-          success: false,
-          message: "Document not found",
+      return {
+        success: false,
+        message: "Document not found",
+        data: {
           document_id,
           status: "failed"
-        };
+        }
+      };
       }
       
       const jobId = await this.service.regenerateDocument(document_id);
@@ -151,16 +176,20 @@ export class UserDocumentResolver {
       return {
         success: true,
         message: "Document regeneration started",
-        document_id,
-        job_id: jobId,
-        status: "processing"
+        data: {
+          document_id,
+          job_id: jobId,
+          status: "processing"
+        }
       };
     } catch (error) {
       return {
         success: false,
         message: error instanceof Error ? error.message : String(error),
-        document_id,
-        status: "failed"
+        data: {
+          document_id,
+          status: "failed"
+        }
       };
     }
   }
@@ -175,29 +204,35 @@ export class UserDocumentResolver {
   ): Promise<DocumentJobResponse> {
     try {
       if (!clientId) {
-        return {
-          success: false,
+      return {
+        success: false,
+        message: "Missing required header: client_id",
+        data: {
           job_id,
-          message: "Missing required header: client_id",
           status: "error"
-        };
+        }
+      };
       }
       
       const jobStatus = await this.service.getJobStatus(job_id);
       
       return {
         success: true,
-        job_id,
-        status: jobStatus.status,
-        progress: jobStatus.progress,
-        result: jobStatus.result
+        data: {
+          job_id,
+          status: jobStatus.status,
+          progress: jobStatus.progress,
+          result: jobStatus.result
+        }
       };
     } catch (error) {
       return {
         success: false,
-        job_id,
         message: error instanceof Error ? error.message : String(error),
-        status: "error"
+        data: {
+          job_id,
+          status: "error"
+        }
       };
     }
   }
@@ -229,14 +264,18 @@ export class UserDocumentResolver {
         return false;
       }
       
-      const filePath = await this.service.downloadDocument(document_id);
+      const fileStreamOrPath = await this.service.downloadDocument(document_id);
       
       res.setHeader('Content-Type', 'application/pdf');
       res.setHeader('Content-Disposition', `attachment; filename="document-${document_id}.pdf"`);
       
-      // Stream the file
-      const fileStream = createReadStream(filePath);
-      fileStream.pipe(res);
+      // Handle both stream and file path cases
+      if (typeof fileStreamOrPath === 'string') {
+        const fileStream = createReadStream(fileStreamOrPath);
+        fileStream.pipe(res);
+      } else {
+        fileStreamOrPath.pipe(res);
+      }
       
       return true;
     } catch (error) {
@@ -275,7 +314,7 @@ export class UserDocumentResolver {
         return false;
       }
       
-      const stream = await this.service.getDocumentStream(document_id);
+      const streamOrPath = await this.service.getDocumentStream(document_id);
       
       // Set headers for streaming
       res.setHeader('Content-Type', 'application/pdf');
@@ -292,7 +331,13 @@ export class UserDocumentResolver {
         res.setHeader('Content-Disposition', `inline; filename="document-${document_id}.pdf"`);
       }
       
-      stream.pipe(res);
+      // Handle both stream and file path cases
+      if (typeof streamOrPath === 'string') {
+        const fileStream = createReadStream(streamOrPath);
+        fileStream.pipe(res);
+      } else {
+        streamOrPath.pipe(res);
+      }
       
       return true;
     } catch (error) {

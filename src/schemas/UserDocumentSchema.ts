@@ -176,13 +176,7 @@ export class CreateDocumentWithInput {
 }
 
 @ObjectType()
-export class DocumentGenerationResponse {
-  @Field()
-  success: boolean;
-
-  @Field({ nullable: true })
-  message?: string;
-
+export class DocumentGenerationData {
   @Field(() => Int)
   document_id: number;
 
@@ -194,15 +188,21 @@ export class DocumentGenerationResponse {
 }
 
 @ObjectType()
-export class DocumentJobResponse {
+export class DocumentGenerationResponse {
   @Field()
   success: boolean;
 
-  @Field()
-  job_id: string;
-
   @Field({ nullable: true })
   message?: string;
+
+  @Field(() => DocumentGenerationData, { nullable: true })
+  data?: DocumentGenerationData;
+}
+
+@ObjectType()
+export class DocumentJobData {
+  @Field()
+  job_id: string;
 
   @Field()
   status: string;
@@ -212,4 +212,16 @@ export class DocumentJobResponse {
 
   @Field(() => GraphQLJSON, { nullable: true })
   result?: any;
+}
+
+@ObjectType()
+export class DocumentJobResponse {
+  @Field()
+  success: boolean;
+
+  @Field({ nullable: true })
+  message?: string;
+
+  @Field(() => DocumentJobData, { nullable: true })
+  data?: DocumentJobData;
 }

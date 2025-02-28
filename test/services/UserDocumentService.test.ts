@@ -40,6 +40,19 @@ describe("UserDocument Service", () => {
     expect(document.legal_form_id).toBe(legalFormId);
   });
 
+  it("should create a document with numeric client_id", async () => {
+    const document = await userDocService.createDocumentAndInput({
+      client_id: 101,
+      legal_form_id: legalFormId,
+      status: DocumentStatus.BOOKED,
+      input: [{ field1: "value1" }]
+    });
+
+    expect(document.id).toBeDefined();
+    expect(document.client_id).toBe(101);
+    expect(document.legal_form_id).toBe(legalFormId);
+  });
+
   it("should get paginated user documents with legal form details", async () => {
     await userDocService.createDocumentAndInput({
       client_id: 1,
@@ -80,6 +93,9 @@ describe("UserDocument Service", () => {
     expect(typeof document.legal_form?.price).toBe('number');
     expect(typeof document.legal_form?.final_price).toBe('number');
   });
+
+  // Note: The current implementation doesn't support filtering by client_id directly
+  // This test would need to be updated if that functionality is added
 
   it("should handle empty results", async () => {
     await userDocService.deleteAllUserDocuments();
