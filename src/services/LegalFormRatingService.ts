@@ -15,11 +15,11 @@ export class LegalFormRatingService {
   }
 
   async rateLegalForm(
-    document_id: string,
+    id: string,
     rating: number,
     description?: string
   ): Promise<any> {
-    const document = await this.documentRepository.findByDocumentId(Number(document_id));
+    const document = await this.documentRepository.findById(id);
     if (!document) {
       throw new Error("Document not found");
     }
@@ -29,7 +29,7 @@ export class LegalFormRatingService {
     }
 
     const ratingData: Partial<ILegalFormRating> = {
-      document_id: document_id,
+      document_id: document.document_id,
       legal_form_id: document.legal_form_id,
       rating: rating,
       description: description

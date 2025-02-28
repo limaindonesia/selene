@@ -102,17 +102,18 @@ export class UserDocumentService {
   public async getAllUserDocuments(
     page?: number,
     pageSize?: number,
-    status?: string[]
+    status?: number[],
+    query?: any
   ): Promise<UserDocumentResponse> {
     const usePagination = page !== undefined && pageSize !== undefined;
     const effectivePage = usePagination ? page : 1;
     const effectivePageSize = usePagination ? pageSize : 10;
-    const statusNumbers = status?.map(s => DocumentStatus[s as keyof typeof DocumentStatus]);
 
     const { data, totalItems, totalPages } = await this.userDocumentRepository.findAllWithPagination(
       effectivePage,
       effectivePageSize,
-      statusNumbers
+      status,
+      query
     );
 
     const documentsWithLegalForm = await Promise.all(
@@ -124,7 +125,7 @@ export class UserDocumentService {
         if (legalForm) {
           const legalFormObj = legalForm.toObject();
           legalFormDetails = {
-            id: legalFormObj.id,
+            id: legalFormObj._id,
             category_id: legalFormObj.category, // Using category as category_id
             name: legalFormObj.name,
             price: Number(legalFormObj.price),
@@ -139,7 +140,7 @@ export class UserDocumentService {
 
         return {
           ...docObj,
-          id: docObj.id,
+          id: docObj._id,
           document_id: docObj.document_id,
           legal_form_id: docObj.legal_form_id,
           client_id: docObj.client_id,
