@@ -177,8 +177,11 @@ export class CreateDocumentWithInput {
 
 @ObjectType()
 export class DocumentGenerationData {
-  @Field(() => Int)
-  document_id: number;
+  @Field(() => Int, { nullable: true })
+  document_id?: number;
+
+  @Field({ nullable: true })
+  id?: string;
 
   @Field({ nullable: true })
   job_id?: string;

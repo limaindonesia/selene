@@ -6,7 +6,10 @@
   "scripts": {
     "build": "tsc",
     "start": "tsc && node ./build/index.js",
-    "test": "jest --runInBand --forceExit"
+    "test": "jest --runInBand --forceExit",
+    "queue:worker": "tsc && node ./build/queue-worker.js",
+    "queue:monitor": "tsc && node ./build/monitor-queue.js",
+    "queue:start": "concurrently \"npm run queue:worker\" \"npm run queue:monitor\""
   },
   "dependencies": {
     "@apollo/server": "^4.11.2",
@@ -36,6 +39,7 @@
     "@types/jest": "^29.5.14",
     "@types/mongoose": "^5.11.97",
     "@types/node": "^22.9.0",
+    "concurrently": "^8.2.2",
     "jest": "^29.7.0",
     "mongodb-memory-server": "^10.1.2",
     "supertest": "^7.0.0",

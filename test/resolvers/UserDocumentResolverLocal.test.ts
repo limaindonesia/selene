@@ -70,6 +70,17 @@ jest.mock('../../src/config/envConfig', () => ({
 jest.mock('../../src/services/UserDocumentService', () => {
   return {
     UserDocumentService: jest.fn().mockImplementation(() => ({
+      getUserDocumentByDocumentId: jest.fn().mockImplementation((document_id) => {
+        if (document_id === 12345) {
+          return Promise.resolve({
+            id: 'mock-document-id',
+            document_id: 12345,
+            client_id: 123,
+            status: 1
+          });
+        }
+        return Promise.resolve(null);
+      }),
       generateDocument: jest.fn().mockResolvedValue('job123'),
       regenerateDocument: jest.fn().mockResolvedValue('job123'),
       getJobStatus: jest.fn().mockResolvedValue({
@@ -154,52 +165,62 @@ describe('UserDocumentResolver with Local Storage', () => {
 
   describe('generateDocument', () => {
     it('should generate a document and return success response', async () => {
-      mockUserDocumentService.verifyClientAccess = jest.fn().mockResolvedValue(undefined);
+      mockUserDocumentService.getUserDocumentById = jest.fn().mockResolvedValue({
+        id: 'mock-document-id',
+        document_id: 12345,
+        client_id: 123,
+        status: 1
+      });
       
-      const result = await resolver.generateDocument(12345, '<html>Test</html>', { req: {} as any, res: {}, clientId: 'client123' } as any);
+      const result = await resolver.generateDocument('mock-document-id', '<html>Test</html>', { req: {} as any, res: {}, clientId: '123' } as any);
       
       expect(result).toEqual({
         success: true,
         message: 'Document generation started',
         data: {
-          document_id: 12345,
+          id: 'mock-document-id',
           job_id: 'job123',
           status: 'processing'
         }
       });
-      expect(mockUserDocumentService.verifyClientAccess).toHaveBeenCalledWith('client123', 12345);
+      expect(mockUserDocumentService.getUserDocumentById).toHaveBeenCalledWith('mock-document-id');
       expect(mockUserDocumentService.generateDocument).toHaveBeenCalledWith(
-        12345,
+        'mock-document-id',
         '<html>Test</html>'
       );
     });
 
     it('should handle errors and return failure response', async () => {
-      mockUserDocumentService.verifyClientAccess = jest.fn().mockResolvedValue(undefined);
+      mockUserDocumentService.getUserDocumentById = jest.fn().mockResolvedValue({
+        id: 'mock-document-id',
+        document_id: 99999,
+        client_id: 123,
+        status: 1
+      });
       mockUserDocumentService.generateDocument = jest.fn().mockRejectedValue(
         new Error('Document not found')
       );
       
-      const result = await resolver.generateDocument(99999, '<html>Test</html>', { clientId: 'client123' } as any);
+      const result = await resolver.generateDocument('mock-document-id', '<html>Test</html>', { clientId: '123' } as any);
       
       expect(result).toEqual({
         success: false,
         message: 'Document not found',
         data: {
-          document_id: 99999,
+          id: 'mock-document-id',
           status: 'failed'
         }
       });
     });
 
     it('should handle missing client_id', async () => {
-      const result = await resolver.generateDocument(12345, '<html>Test</html>', { clientId: '' } as any);
+      const result = await resolver.generateDocument('mock-document-id', '<html>Test</html>', { clientId: '' } as any);
       
       expect(result).toEqual({
         success: false,
         message: 'Missing required header: client_id',
         data: {
-          document_id: 12345,
+          id: 'mock-document-id',
           status: 'failed'
         }
       });
@@ -209,21 +230,26 @@ describe('UserDocumentResolver with Local Storage', () => {
 
   describe('regenerateDocument', () => {
     it('should regenerate a document and return success response', async () => {
-      mockUserDocumentService.verifyClientAccess = jest.fn().mockResolvedValue(undefined);
+      mockUserDocumentService.getUserDocumentById = jest.fn().mockResolvedValue({
+        id: 'mock-document-id',
+        document_id: 12345,
+        client_id: 123,
+        status: 1
+      });
       
-      const result = await resolver.regenerateDocument(12345, { req: {} as any, res: {}, clientId: 'client123' } as any);
+      const result = await resolver.regenerateDocument('mock-document-id', { req: {} as any, res: {}, clientId: '123' } as any);
       
       expect(result).toEqual({
         success: true,
         message: 'Document regeneration started',
         data: {
-          document_id: 12345,
+          id: 'mock-document-id',
           job_id: 'job123',
           status: 'processing'
         }
       });
-      expect(mockUserDocumentService.verifyClientAccess).toHaveBeenCalledWith('client123', 12345);
-      expect(mockUserDocumentService.regenerateDocument).toHaveBeenCalledWith(12345);
+      expect(mockUserDocumentService.getUserDocumentById).toHaveBeenCalledWith('mock-document-id');
+      expect(mockUserDocumentService.regenerateDocument).toHaveBeenCalledWith('mock-document-id');
     });
   });
 
@@ -248,17 +274,22 @@ describe('UserDocumentResolver with Local Storage', () => {
 
   describe('downloadDocument', () => {
     it('should download a document from local storage', async () => {
-      mockUserDocumentService.verifyClientAccess = jest.fn().mockResolvedValue(undefined);
+      mockUserDocumentService.getUserDocumentById = jest.fn().mockResolvedValue({
+        id: 'mock-document-id',
+        document_id: 12345,
+        client_id: 123,
+        status: 1
+      });
       
-      const result = await resolver.downloadDocument(12345, { 
+      const result = await resolver.downloadDocument('mock-document-id', { 
         req: {} as any,
         res: mockResponse as any,
-        clientId: 'client123'
+        clientId: '123'
       });
       
       expect(result).toBe(true);
-      expect(mockUserDocumentService.verifyClientAccess).toHaveBeenCalledWith('client123', 12345);
-      expect(mockUserDocumentService.downloadDocument).toHaveBeenCalledWith(12345);
+      expect(mockUserDocumentService.getUserDocumentById).toHaveBeenCalledWith('mock-document-id');
+      expect(mockUserDocumentService.downloadDocument).toHaveBeenCalledWith('mock-document-id');
       expect(mockResponse.setHeader).toHaveBeenCalledWith('Content-Type', 'application/pdf');
       expect(mockResponse.setHeader).toHaveBeenCalledWith(
         'Content-Disposition',
@@ -274,17 +305,22 @@ describe('UserDocumentResolver with Local Storage', () => {
 
   describe('streamDocument', () => {
     it('should stream a document from local storage', async () => {
-      mockUserDocumentService.verifyClientAccess = jest.fn().mockResolvedValue(undefined);
+      mockUserDocumentService.getUserDocumentById = jest.fn().mockResolvedValue({
+        id: 'mock-document-id',
+        document_id: 12345,
+        client_id: 123,
+        status: 1
+      });
       
-      const result = await resolver.streamDocument(12345, { 
+      const result = await resolver.streamDocument('mock-document-id', { 
         req: mockRequest,
         res: mockResponse as any,
-        clientId: 'client123'
+        clientId: '123'
       });
       
       expect(result).toBe(true);
-      expect(mockUserDocumentService.verifyClientAccess).toHaveBeenCalledWith('client123', 12345);
-      expect(mockUserDocumentService.getDocumentStream).toHaveBeenCalledWith(12345);
+      expect(mockUserDocumentService.getUserDocumentById).toHaveBeenCalledWith('mock-document-id');
+      expect(mockUserDocumentService.getDocumentStream).toHaveBeenCalledWith('mock-document-id');
       expect(mockResponse.setHeader).toHaveBeenCalledWith('Content-Type', 'application/pdf');
       expect(mockResponse.setHeader).toHaveBeenCalledWith(
         'Content-Disposition',
@@ -293,7 +329,12 @@ describe('UserDocumentResolver with Local Storage', () => {
     });
 
     it('should handle mobile user agents with local storage', async () => {
-      mockUserDocumentService.verifyClientAccess = jest.fn().mockResolvedValue(undefined);
+      mockUserDocumentService.getUserDocumentById = jest.fn().mockResolvedValue({
+        id: 'mock-document-id',
+        document_id: 12345,
+        client_id: 123,
+        status: 1
+      });
       
       const mobileResponse = {
         ...mockResponse,
@@ -304,14 +345,14 @@ describe('UserDocumentResolver with Local Storage', () => {
         }
       };
       
-      const result = await resolver.streamDocument(12345, { 
+      const result = await resolver.streamDocument('mock-document-id', { 
         req: {} as any,
         res: mobileResponse as any,
-        clientId: 'client123'
+        clientId: '123'
       });
       
       expect(result).toBe(true);
-      expect(mockUserDocumentService.verifyClientAccess).toHaveBeenCalledWith('client123', 12345);
+      expect(mockUserDocumentService.getUserDocumentById).toHaveBeenCalledWith('mock-document-id');
       expect(mobileResponse.setHeader).toHaveBeenCalledWith('Content-Type', 'application/octet-stream');
       expect(mobileResponse.setHeader).toHaveBeenCalledWith(
         'Content-Disposition',

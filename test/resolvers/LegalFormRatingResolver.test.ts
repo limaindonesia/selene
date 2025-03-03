@@ -19,7 +19,7 @@ describe("LegalFormRatingResolver", () => {
 
   describe("rateLegalForm", () => {
     const mockInput = {
-      document_id: 123,
+      id: "123",
       rating: 4,
       description: "Document is good"
     };
@@ -37,7 +37,7 @@ describe("LegalFormRatingResolver", () => {
       const response = await resolver.rateLegalForm(mockInput);
 
       expect(mockService.rateLegalForm).toHaveBeenCalledWith(
-        mockInput.document_id,
+        mockInput.id,
         mockInput.rating,
         mockInput.description
       );
@@ -59,7 +59,7 @@ describe("LegalFormRatingResolver", () => {
       const response = await resolver.rateLegalForm(mockInput);
 
       expect(mockService.rateLegalForm).toHaveBeenCalledWith(
-        mockInput.document_id,
+        mockInput.id,
         mockInput.rating,
         mockInput.description
       );

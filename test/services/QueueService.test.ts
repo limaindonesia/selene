@@ -132,18 +132,18 @@ describe('QueueService Tests', () => {
 
   describe('addPdfGenerationJob', () => {
     it('should add a job to the queue and return job ID', async () => {
-      const result = await QueueService.addPdfGenerationJob(12345, '<html>Test</html>');
+      const result = await QueueService.addPdfGenerationJob('doc123', '<html>Test</html>');
       
       expect(result).toBe('job123');
       expect(pdfQueue.add).toHaveBeenCalledWith(
-        { document_id: 12345, html: '<html>Test</html>' },
+        { id: 'doc123', html: '<html>Test</html>' },
         expect.objectContaining({
           attempts: 3,
           backoff: expect.objectContaining({
             type: 'exponential',
             delay: 5000
           }),
-          removeOnComplete: true,
+          removeOnComplete: false,
           removeOnFail: false
         })
       );
@@ -182,28 +182,25 @@ describe('QueueService Tests', () => {
     });
   });
 
-  // Since we've moved the process callback inside the function in QueueService.ts,
-  // we'll test the QueueService class methods directly instead
   describe('QueueService methods', () => {
     it('should add a PDF generation job successfully', async () => {
-      const jobId = await QueueService.addPdfGenerationJob(12345, '<html>Test</html>');
+      const jobId = await QueueService.addPdfGenerationJob('doc123', '<html>Test</html>');
       expect(jobId).toBe('job123');
       expect(pdfQueue.add).toHaveBeenCalledWith(
-        { document_id: 12345, html: '<html>Test</html>' },
+        { id: 'doc123', html: '<html>Test</html>' },
         expect.objectContaining({
           attempts: 3,
           backoff: expect.objectContaining({
             type: 'exponential',
             delay: 5000
           }),
-          removeOnComplete: true,
+          removeOnComplete: false,
           removeOnFail: false
         })
       );
     });
 
     it('should get job status successfully', async () => {
-      // Reset the mock to ensure it returns the expected job object
       (pdfQueue.getJob as jest.Mock).mockResolvedValue({
         id: 'job123',
         getState: jest.fn().mockResolvedValue('completed'),

@@ -25,32 +25,33 @@ const storageService = new StorageService();
 pdfQueue.process(async (job) => {
   // Create service instances inside the process function to avoid circular dependencies
   const userDocumentService = new UserDocumentService();
-  const { document_id, html } = job.data;
+  const { id, html } = job.data;
   
   try {
-    console.log(`Processing PDF generation for document ID: ${document_id}`);
+    console.log(`Processing PDF generation for document ID: ${id}`);
     
-    const tempPdfPath = path.join(os.tmpdir(), `document-${document_id}-${Date.now()}.pdf`);
+    const document = await userDocumentService.getUserDocumentById(id);
+    if (!document) {
+      throw new Error(`Document not found with ID: ${id}`);
+    }
+    
+    const tempPdfPath = path.join(os.tmpdir(), `document-${document.document_id}-${Date.now()}.pdf`);
     await pdfGeneratorService.generatePdf(html, tempPdfPath);
     
-    const gcsPath = `legal-forms/documents/${document_id}.pdf`;
+    const gcsPath = `documents/${document.document_id}.pdf`;
     const fileUrl = await storageService.uploadFile(tempPdfPath, gcsPath);
     
-    await userDocumentService.changeUserDocumentStatus(document_id, DocumentStatus.COMPLETED);
-    
-    const userDocument = await userDocumentService.getUserDocumentByDocumentId(document_id);
-    if (userDocument) {
-      await userDocumentService.updateUserDocument(userDocument.id, {
-        file: [fileUrl],
-      });
-    }
+    await userDocumentService.updateUserDocument(id, {
+      status: DocumentStatus.COMPLETED,
+      file: [fileUrl],
+    });
     
     await unlinkAsync(tempPdfPath);
     
-    console.log(`PDF generation completed for document ID: ${document_id}`);
+    console.log(`PDF generation completed for document ID: ${id}`);
     return { success: true, fileUrl };
   } catch (error) {
-    console.error(`Error generating PDF for document ID: ${document_id}`, error);
+    console.error(`Error generating PDF for document ID: ${id}`, error);
     return { success: false, error: error instanceof Error ? error.message : String(error) };
   }
 });
@@ -58,20 +59,20 @@ pdfQueue.process(async (job) => {
 export class QueueService {
   /**
    * Add a PDF generation job to the queue
-   * @param document_id Document ID
+   * @param id Document ID (MongoDB ObjectId)
    * @param html HTML content
    * @returns Job ID
    */
-  static async addPdfGenerationJob(document_id: number, html: string): Promise<string> {
+  static async addPdfGenerationJob(id: string, html: string): Promise<string> {
     const job = await pdfQueue.add(
-      { document_id, html },
+      { id, html },
       {
         attempts: 3,
         backoff: {
           type: 'exponential',
           delay: 5000,
         },
-        removeOnComplete: true,
+        removeOnComplete: false,
         removeOnFail: false,
       }
     );

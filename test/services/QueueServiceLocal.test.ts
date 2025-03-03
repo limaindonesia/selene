@@ -73,6 +73,12 @@ jest.mock('../../src/services/PdfGeneratorService', () => {
 jest.mock('../../src/services/UserDocumentService', () => {
   return {
     UserDocumentService: jest.fn().mockImplementation(() => ({
+      getUserDocumentById: jest.fn().mockResolvedValue({
+        id: 'doc123',
+        document_id: 12345,
+        status: DocumentStatus.GENERATING,
+        generated_html: '<html><body>Test Document</body></html>'
+      }),
       getUserDocumentByDocumentId: jest.fn().mockResolvedValue({
         id: 'doc123',
         document_id: 12345,
@@ -100,18 +106,18 @@ describe('QueueService with Local Storage', () => {
 
   describe('addPdfGenerationJob', () => {
     it('should add a job to the queue and return job ID', async () => {
-      const result = await QueueService.addPdfGenerationJob(12345, '<html>Test</html>');
+      const result = await QueueService.addPdfGenerationJob('12345', '<html>Test</html>');
       
       expect(result).toBe('job123');
       expect(pdfQueue.add).toHaveBeenCalledWith(
-        { document_id: 12345, html: '<html>Test</html>' },
+        { id: '12345', html: '<html>Test</html>' },
         expect.objectContaining({
           attempts: 3,
           backoff: expect.objectContaining({
             type: 'exponential',
             delay: 5000
           }),
-          removeOnComplete: true,
+          removeOnComplete: false,
           removeOnFail: false
         })
       );
@@ -146,7 +152,7 @@ describe('QueueService with Local Storage', () => {
       
       const mockJob = {
         data: {
-          document_id: 12345,
+          id: '12345',
           html: '<html><body>Test Document</body></html>'
         }
       };

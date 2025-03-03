@@ -179,7 +179,7 @@ describe("UserDocument Service", () => {
     });
 
     const updatedDocument = await userDocService.changeUserDocumentStatus(
-      document.document_id,
+      document.id,
       DocumentStatus.ON_PROGRESS
     );
 
@@ -281,7 +281,7 @@ describe("UserDocument Service", () => {
       });
 
       const updatedDocument = await userDocService.changeUserDocumentStatus(
-        document.document_id,
+        document.id,
         DocumentStatus.ON_PROGRESS
       );
 

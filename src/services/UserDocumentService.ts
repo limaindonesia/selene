@@ -10,8 +10,6 @@ import { DocumentStatus } from "../enums/DocumentStatus.enum";
 import * as QueueServiceModule from "./QueueService";
 import { StorageService } from "./StorageService";
 import { PdfGeneratorService } from "./PdfGeneratorService";
-import path from 'path';
-import os from 'os';
 import fs from 'fs';
 import { promisify } from 'util';
 
@@ -54,7 +52,7 @@ export class UserDocumentService {
     const nextDocId = await this.getNextDocumentId();
 
     const clientId = typeof params.client_id === 'string' 
-      ? parseInt(params.client_id, 10) || 0 // Convert string to number, default to 0 if NaN
+      ? parseInt(params.client_id, 10) || 0
       : params.client_id;
 
     const userDocumentData: Partial<IUserDocument> = {
@@ -207,8 +205,8 @@ export class UserDocumentService {
     return this.userDocumentRepository.delete(id);
   }
 
-  public async changeUserDocumentStatus(document_id: number, status: number): Promise<IUserDocument | null> {
-    const userDocument = await this.userDocumentRepository.findByDocumentId(document_id);
+  public async changeUserDocumentStatus(id: string, status: number): Promise<IUserDocument | null> {
+    const userDocument = await this.userDocumentRepository.findById(id);
     if (!userDocument) {
       return null;
     }
@@ -223,11 +221,11 @@ export class UserDocumentService {
   /**
    * Verify that a client has access to a document
    * @param client_id Client ID from header
-   * @param document_id Document ID
+   * @param id Document ID (MongoDB ObjectId)
    * @throws Error if client does not have access to document
    */
-  public async verifyClientAccess(client_id: string, document_id: number): Promise<void> {
-    const existingDocument = await this.userDocumentRepository.findByDocumentId(document_id);
+  public async verifyClientAccess(client_id: string, id: string): Promise<void> {
+    const existingDocument = await this.userDocumentRepository.findById(id);
     if (!existingDocument) {
       throw new Error('Document not found');
     }
@@ -248,12 +246,12 @@ export class UserDocumentService {
 
   /**
    * Generate a document from HTML
-   * @param document_id Document ID
+   * @param id Document ID (MongoDB ObjectId)
    * @param generated_html HTML content
    * @returns Job ID
    */
-  public async generateDocument(document_id: number, generated_html: string): Promise<string> {
-    const existingDocument = await this.userDocumentRepository.findByDocumentId(document_id);
+  public async generateDocument(id: string, generated_html: string): Promise<string> {
+    const existingDocument = await this.userDocumentRepository.findById(id);
     if (!existingDocument) {
       throw new Error('Document not found');
     }
@@ -263,17 +261,17 @@ export class UserDocumentService {
       generated_html,
     });
 
-    const jobId = await QueueServiceModule.QueueService.addPdfGenerationJob(document_id, generated_html);
+    const jobId = await QueueServiceModule.QueueService.addPdfGenerationJob(existingDocument.id, generated_html);
     return jobId;
   }
 
   /**
    * Regenerate a document
-   * @param document_id Document ID
+   * @param id Document ID (MongoDB ObjectId)
    * @returns Job ID
    */
-  public async regenerateDocument(document_id: number): Promise<string> {
-    const existingDocument = await this.userDocumentRepository.findByDocumentId(document_id);
+  public async regenerateDocument(id: string): Promise<string> {
+    const existingDocument = await this.userDocumentRepository.findById(id);
     if (!existingDocument) {
       throw new Error('Document not found');
     }
@@ -286,26 +284,30 @@ export class UserDocumentService {
       throw new Error('Document HTML not found');
     }
 
-    const jobId = await QueueServiceModule.QueueService.addPdfGenerationJob(document_id, existingDocument.generated_html);
+    const jobId = await QueueServiceModule.QueueService.addPdfGenerationJob(existingDocument.id, existingDocument.generated_html);
     return jobId;
   }
 
   /**
    * Get document file path in Google Cloud Storage
-   * @param document_id Document ID
+   * @param id Document ID (MongoDB ObjectId)
    * @returns File path
    */
-  private getDocumentFilePath(document_id: number): string {
-    return `legal-forms/documents/${document_id}.pdf`;
+  private async getDocumentFilePath(id: string): Promise<string> {
+    const document = await this.userDocumentRepository.findById(id);
+    if (!document) {
+      throw new Error('Document not found');
+    }
+    return `documents/${document.document_id}.pdf`;
   }
 
   /**
    * Download a document
-   * @param document_id Document ID
+   * @param id Document ID (MongoDB ObjectId)
    * @returns Stream for the document
    */
-  public async downloadDocument(document_id: number): Promise<NodeJS.ReadableStream | string> {
-    const existingDocument = await this.userDocumentRepository.findByDocumentId(document_id);
+  public async downloadDocument(id: string): Promise<NodeJS.ReadableStream | string> {
+    const existingDocument = await this.userDocumentRepository.findById(id);
     if (!existingDocument) {
       throw new Error('Document not found');
     }
@@ -318,7 +320,7 @@ export class UserDocumentService {
       throw new Error('Document file not found');
     }
 
-    const gcsPath = this.getDocumentFilePath(document_id);
+    const gcsPath = await this.getDocumentFilePath(id);
     
     const fileExists = await this.storageService.fileExists(gcsPath);
     if (!fileExists) {
@@ -330,11 +332,11 @@ export class UserDocumentService {
 
   /**
    * Get a stream for a document
-   * @param document_id Document ID
+   * @param id Document ID (MongoDB ObjectId)
    * @returns Stream
    */
-  public async getDocumentStream(document_id: number): Promise<NodeJS.ReadableStream | string> {
+  public async getDocumentStream(id: string): Promise<NodeJS.ReadableStream | string> {
     // Reuse the download method since it now returns a stream directly
-    return this.downloadDocument(document_id);
+    return this.downloadDocument(id);
   }
 }

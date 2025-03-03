@@ -27,7 +27,7 @@ export class UserDocumentResolver {
     @Arg("page", () => Int, { nullable: true }) page?: number,
     @Arg("limit", () => Int, { nullable: true }) limit?: number,
     @Arg("skip", () => Int, { nullable: true }) skip?: number,
-    @Arg("status", () => [Int], { nullable: true }) status?: number[],
+    @Arg("status", () => [Int!], { nullable: true }) status?: number[],
     @Arg("paginate", () => Boolean, { nullable: true }) paginate?: boolean
   ): Promise<UserDocumentResponse> {
     if (!clientId) {
@@ -80,9 +80,23 @@ export class UserDocumentResolver {
   @Mutation(() => UserDocument)
   async changeUserDocumentStatus(
     @Arg("document_id") document_id: number, 
-    @Arg("status", () => Int) status: DocumentStatus
+    @Arg("status", () => Int) status: DocumentStatus,
+    @Ctx() { clientId }: Context
   ): Promise<UserDocument> {
-    return await this.service.changeUserDocumentStatus(document_id, status);
+    if (!clientId) {
+      throw new Error("Missing required header: client_id");
+    }
+
+    const document = await this.service.getUserDocumentByDocumentId(document_id);
+    if (!document) {
+      throw new Error("Document not found");
+    }
+
+    if (document.client_id !== Number(clientId)) {
+      throw new Error("Document not found");
+    }
+
+    return await this.service.changeUserDocumentStatus(document.id, status);
   }
 
   /**
@@ -90,42 +104,52 @@ export class UserDocumentResolver {
    */
   @Mutation(() => DocumentGenerationResponse)
   async generateDocument(
-    @Arg("document_id", () => Int) document_id: number,
+    @Arg("id") id: string,
     @Arg("generated_html") generated_html: string,
     @Ctx() { clientId }: Context
   ): Promise<DocumentGenerationResponse> {
     try {
       if (!clientId) {
-      return {
-        success: false,
-        message: "Missing required header: client_id",
-        data: {
-          document_id,
-          status: "failed"
-        }
-      };
+        return {
+          success: false,
+          message: "Missing required header: client_id",
+          data: {
+            id,
+            status: "failed"
+          }
+        };
       }
 
-      try {
-        await this.service.verifyClientAccess(clientId, document_id);
-      } catch (error) {
-      return {
-        success: false,
-        message: "Document not found",
-        data: {
-          document_id,
-          status: "failed"
-        }
-      };
+      const document = await this.service.getUserDocumentById(id);
+      if (!document) {
+        return {
+          success: false,
+          message: "Document not found",
+          data: {
+            id,
+            status: "failed"
+          }
+        };
+      }
+
+      if (document.client_id !== Number(clientId)) {
+        return {
+          success: false,
+          message: "Document not found",
+          data: {
+            id,
+            status: "failed"
+          }
+        };
       }
       
-      const jobId = await this.service.generateDocument(document_id, generated_html);
+      const jobId = await this.service.generateDocument(id, generated_html);
       
       return {
         success: true,
         message: "Document generation started",
         data: {
-          document_id,
+          id,
           job_id: jobId,
           status: "processing"
         }
@@ -135,7 +159,7 @@ export class UserDocumentResolver {
         success: false,
         message: error instanceof Error ? error.message : String(error),
         data: {
-          document_id,
+          id,
           status: "failed"
         }
       };
@@ -147,41 +171,51 @@ export class UserDocumentResolver {
    */
   @Mutation(() => DocumentGenerationResponse)
   async regenerateDocument(
-    @Arg("document_id", () => Int) document_id: number,
+    @Arg("id") id: string,
     @Ctx() { clientId }: Context
   ): Promise<DocumentGenerationResponse> {
     try {
       if (!clientId) {
-      return {
-        success: false,
-        message: "Missing required header: client_id",
-        data: {
-          document_id,
-          status: "failed"
-        }
-      };
+        return {
+          success: false,
+          message: "Missing required header: client_id",
+          data: {
+            id,
+            status: "failed"
+          }
+        };
       }
 
-      try {
-        await this.service.verifyClientAccess(clientId, document_id);
-      } catch (error) {
-      return {
-        success: false,
-        message: "Document not found",
-        data: {
-          document_id,
-          status: "failed"
-        }
-      };
+      const document = await this.service.getUserDocumentById(id);
+      if (!document) {
+        return {
+          success: false,
+          message: "Document not found",
+          data: {
+            id,
+            status: "failed"
+          }
+        };
+      }
+
+      if (document.client_id !== Number(clientId)) {
+        return {
+          success: false,
+          message: "Document not found",
+          data: {
+            id,
+            status: "failed"
+          }
+        };
       }
       
-      const jobId = await this.service.regenerateDocument(document_id);
+      const jobId = await this.service.regenerateDocument(id);
       
       return {
         success: true,
         message: "Document regeneration started",
         data: {
-          document_id,
+          id,
           job_id: jobId,
           status: "processing"
         }
@@ -191,7 +225,7 @@ export class UserDocumentResolver {
         success: false,
         message: error instanceof Error ? error.message : String(error),
         data: {
-          document_id,
+          id,
           status: "failed"
         }
       };
@@ -208,14 +242,14 @@ export class UserDocumentResolver {
   ): Promise<DocumentJobResponse> {
     try {
       if (!clientId) {
-      return {
-        success: false,
-        message: "Missing required header: client_id",
-        data: {
-          job_id,
-          status: "error"
-        }
-      };
+        return {
+          success: false,
+          message: "Missing required header: client_id",
+          data: {
+            job_id,
+            status: "error"
+          }
+        };
       }
       
       const jobStatus = await this.service.getJobStatus(job_id);
@@ -246,7 +280,7 @@ export class UserDocumentResolver {
    */
   @Query(() => Boolean)
   async downloadDocument(
-    @Arg("document_id", () => Int) document_id: number,
+    @Arg("id") id: string,
     @Ctx() { res, clientId }: Context
   ): Promise<boolean> {
     try {
@@ -258,9 +292,16 @@ export class UserDocumentResolver {
         return false;
       }
 
-      try {
-        await this.service.verifyClientAccess(clientId, document_id);
-      } catch (error) {
+      const document = await this.service.getUserDocumentById(id);
+      if (!document) {
+        res.status(404).json({
+          success: false,
+          message: "Document not found"
+        });
+        return false;
+      }
+
+      if (document.client_id !== Number(clientId)) {
         res.status(404).json({
           success: false,
           message: "Document not found"
@@ -268,12 +309,11 @@ export class UserDocumentResolver {
         return false;
       }
       
-      const fileStreamOrPath = await this.service.downloadDocument(document_id);
+      const fileStreamOrPath = await this.service.downloadDocument(id);
       
       res.setHeader('Content-Type', 'application/pdf');
-      res.setHeader('Content-Disposition', `attachment; filename="document-${document_id}.pdf"`);
+      res.setHeader('Content-Disposition', `attachment; filename="document-${document.document_id}.pdf"`);
       
-      // Handle both stream and file path cases
       if (typeof fileStreamOrPath === 'string') {
         const fileStream = createReadStream(fileStreamOrPath);
         fileStream.pipe(res);
@@ -296,7 +336,7 @@ export class UserDocumentResolver {
    */
   @Query(() => Boolean)
   async streamDocument(
-    @Arg("document_id", () => Int) document_id: number,
+    @Arg("id") id: string,
     @Ctx() { res, clientId }: Context
   ): Promise<boolean> {
     try {
@@ -308,9 +348,16 @@ export class UserDocumentResolver {
         return false;
       }
 
-      try {
-        await this.service.verifyClientAccess(clientId, document_id);
-      } catch (error) {
+      const document = await this.service.getUserDocumentById(id);
+      if (!document) {
+        res.status(404).json({
+          success: false,
+          message: "Document not found"
+        });
+        return false;
+      }
+
+      if (document.client_id !== Number(clientId)) {
         res.status(404).json({
           success: false,
           message: "Document not found"
@@ -318,7 +365,7 @@ export class UserDocumentResolver {
         return false;
       }
       
-      const streamOrPath = await this.service.getDocumentStream(document_id);
+      const streamOrPath = await this.service.getDocumentStream(id);
       
       // Set headers for streaming
       res.setHeader('Content-Type', 'application/pdf');
@@ -330,9 +377,9 @@ export class UserDocumentResolver {
       
       if (isMobile) {
         res.setHeader('Content-Type', 'application/octet-stream');
-        res.setHeader('Content-Disposition', `attachment; filename="document-${document_id}.pdf"`);
+        res.setHeader('Content-Disposition', `attachment; filename="document-${document.document_id}.pdf"`);
       } else {
-        res.setHeader('Content-Disposition', `inline; filename="document-${document_id}.pdf"`);
+        res.setHeader('Content-Disposition', `inline; filename="document-${document.document_id}.pdf"`);
       }
       
       // Handle both stream and file path cases
