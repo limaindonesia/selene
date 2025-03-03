@@ -2,8 +2,8 @@ import { Field, InputType, ObjectType, Int } from "type-graphql";
 
 @InputType()
 export class RateLegalFormInput {
-  @Field(() => Int)
-  document_id: number;
+  @Field()
+  id: string;
 
   @Field()
   rating: number;
