@@ -24,7 +24,10 @@ export class LegalFormRatingResolver {
       return {
         success: true,
         message: "Document rating saved successfully.",
-        data: result
+        data: {
+          ...result,
+          document_id: Number(result.document_id)
+        }
       };
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';

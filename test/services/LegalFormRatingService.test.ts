@@ -31,7 +31,7 @@ describe("LegalFormRatingService", () => {
   });
 
   describe("rateLegalForm", () => {
-    const mockDocumentId = "123";
+    const mockDocumentId = 123;
     const mockRating = 4;
     const mockDescription = "Document is good";
     const mockLegalFormId = "legal-form-123";
@@ -42,7 +42,7 @@ describe("LegalFormRatingService", () => {
       await expect(service.rateLegalForm(mockDocumentId, mockRating, mockDescription))
         .rejects.toThrow("Document not found");
       
-      expect(mockDocumentRepo.findByDocumentId).toHaveBeenCalledWith(Number(mockDocumentId));
+      expect(mockDocumentRepo.findByDocumentId).toHaveBeenCalledWith(mockDocumentId);
     });
 
     it("should throw an error if document is already rated", async () => {
@@ -57,7 +57,7 @@ describe("LegalFormRatingService", () => {
       await expect(service.rateLegalForm(mockDocumentId, mockRating, mockDescription))
         .rejects.toThrow("Document has already been rated");
       
-      expect(mockDocumentRepo.findByDocumentId).toHaveBeenCalledWith(Number(mockDocumentId));
+      expect(mockDocumentRepo.findByDocumentId).toHaveBeenCalledWith(mockDocumentId);
     });
 
     it("should successfully rate a document", async () => {
@@ -73,7 +73,7 @@ describe("LegalFormRatingService", () => {
         legal_form_id: mockLegalFormId,
         rating: mockRating,
         description: mockDescription
-      } as ILegalFormRating;
+      } as unknown as ILegalFormRating;
       
       mockDocumentRepo.findByDocumentId.mockResolvedValue(mockDocument);
       mockRatingRepo.create.mockResolvedValue(mockSavedRating);

@@ -82,6 +82,7 @@ jest.mock('../../src/services/UserDocumentService', () => {
         await mkdirAsync(testDir, { recursive: true });
         const testFile = path.join(testDir, 'test-download.pdf');
         await writeFileAsync(testFile, 'Test PDF content');
+        // Return a file path string to test that code path
         return testFile;
       }),
       getDocumentStream: jest.fn().mockImplementation(() => {
@@ -160,9 +161,11 @@ describe('UserDocumentResolver with Local Storage', () => {
       expect(result).toEqual({
         success: true,
         message: 'Document generation started',
-        document_id: 12345,
-        job_id: 'job123',
-        status: 'processing'
+        data: {
+          document_id: 12345,
+          job_id: 'job123',
+          status: 'processing'
+        }
       });
       expect(mockUserDocumentService.verifyClientAccess).toHaveBeenCalledWith('client123', 12345);
       expect(mockUserDocumentService.generateDocument).toHaveBeenCalledWith(
@@ -182,8 +185,10 @@ describe('UserDocumentResolver with Local Storage', () => {
       expect(result).toEqual({
         success: false,
         message: 'Document not found',
-        document_id: 99999,
-        status: 'failed'
+        data: {
+          document_id: 99999,
+          status: 'failed'
+        }
       });
     });
 
@@ -193,8 +198,10 @@ describe('UserDocumentResolver with Local Storage', () => {
       expect(result).toEqual({
         success: false,
         message: 'Missing required header: client_id',
-        document_id: 12345,
-        status: 'failed'
+        data: {
+          document_id: 12345,
+          status: 'failed'
+        }
       });
       expect(mockUserDocumentService.generateDocument).not.toHaveBeenCalled();
     });
@@ -209,9 +216,11 @@ describe('UserDocumentResolver with Local Storage', () => {
       expect(result).toEqual({
         success: true,
         message: 'Document regeneration started',
-        document_id: 12345,
-        job_id: 'job123',
-        status: 'processing'
+        data: {
+          document_id: 12345,
+          job_id: 'job123',
+          status: 'processing'
+        }
       });
       expect(mockUserDocumentService.verifyClientAccess).toHaveBeenCalledWith('client123', 12345);
       expect(mockUserDocumentService.regenerateDocument).toHaveBeenCalledWith(12345);
@@ -224,14 +233,16 @@ describe('UserDocumentResolver with Local Storage', () => {
       
       expect(result).toEqual({
         success: true,
-        job_id: 'job123',
-        status: 'completed',
-        progress: 100,
-        result: { success: true, fileUrl: 'file:///path/to/file.pdf' }
+        data: {
+          job_id: 'job123',
+          status: 'completed',
+          progress: 100,
+          result: { success: true, fileUrl: 'file:///path/to/file.pdf' }
+        }
       });
       expect(mockUserDocumentService.getJobStatus).toHaveBeenCalledWith('job123');
       
-      expect(result.result.fileUrl).toMatch(/^file:\/\//);
+      expect(result.data?.result.fileUrl).toMatch(/^file:\/\//);
     });
   });
 

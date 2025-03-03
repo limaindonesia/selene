@@ -302,9 +302,9 @@ export class UserDocumentService {
   /**
    * Download a document
    * @param document_id Document ID
-   * @returns Local file path
+   * @returns Stream for the document
    */
-  public async downloadDocument(document_id: number): Promise<string> {
+  public async downloadDocument(document_id: number): Promise<NodeJS.ReadableStream | string> {
     const existingDocument = await this.userDocumentRepository.findByDocumentId(document_id);
     if (!existingDocument) {
       throw new Error('Document not found');
@@ -324,14 +324,8 @@ export class UserDocumentService {
     if (!fileExists) {
       throw new Error('Document file not found in storage');
     }
-
-    const tempDir = path.join(os.tmpdir(), 'pdf-downloads');
-    await promisify(fs.mkdir)(tempDir, { recursive: true });
     
-    const localPath = path.join(tempDir, `document-${document_id}.pdf`);
-    await this.storageService.downloadFile(gcsPath, localPath);
-    
-    return localPath;
+    return this.storageService.getFileStream(gcsPath);
   }
 
   /**
@@ -339,27 +333,8 @@ export class UserDocumentService {
    * @param document_id Document ID
    * @returns Stream
    */
-  public async getDocumentStream(document_id: number) {
-    const existingDocument = await this.userDocumentRepository.findByDocumentId(document_id);
-    if (!existingDocument) {
-      throw new Error('Document not found');
-    }
-
-    if (existingDocument.status !== DocumentStatus.COMPLETED) {
-      throw new Error(`Document is not ready for streaming. Current status: ${existingDocument.status}`);
-    }
-
-    if (!existingDocument.file || existingDocument.file.length === 0) {
-      throw new Error('Document file not found');
-    }
-
-    const gcsPath = this.getDocumentFilePath(document_id);
-    
-    const fileExists = await this.storageService.fileExists(gcsPath);
-    if (!fileExists) {
-      throw new Error('Document file not found in storage');
-    }
-
-    return this.storageService.getFileStream(gcsPath);
+  public async getDocumentStream(document_id: number): Promise<NodeJS.ReadableStream | string> {
+    // Reuse the download method since it now returns a stream directly
+    return this.downloadDocument(document_id);
   }
 }
