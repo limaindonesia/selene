@@ -35,12 +35,11 @@ export class UserDocumentResolver {
     }
 
     const clientIdNum = Number(clientId);
-    const query = { client_id: clientIdNum };
 
     if (paginate) {
-      return this.service.getAllUserDocuments(page || 1, limit || 10, status, query);
+      return this.service.getAllUserDocuments(page || 1, limit || 10, status, clientIdNum);
     } else {
-      return this.service.getAllUserDocuments(undefined, undefined, status, query);
+      return this.service.getAllUserDocuments(undefined, undefined, status, clientIdNum);
     }
   }
 
@@ -83,7 +82,6 @@ export class UserDocumentResolver {
     @Ctx() { clientId }: Context
   ): Promise<DocumentGenerationResponse> {
     try {
-      // Verify client has access to this document
       if (!clientId) {
         return {
           success: false,
@@ -93,7 +91,6 @@ export class UserDocumentResolver {
         };
       }
 
-      // Verify client has access to this document
       try {
         await this.service.verifyClientAccess(clientId, document_id);
       } catch (error) {
@@ -133,7 +130,6 @@ export class UserDocumentResolver {
     @Ctx() { clientId }: Context
   ): Promise<DocumentGenerationResponse> {
     try {
-      // Verify client has access to this document
       if (!clientId) {
         return {
           success: false,

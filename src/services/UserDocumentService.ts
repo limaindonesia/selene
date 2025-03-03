@@ -18,7 +18,7 @@ import { promisify } from 'util';
 const unlinkAsync = promisify(fs.unlink);
 
 interface CreateDocumentAndInputParams {
-  client_id: number;
+  client_id: number | string;
   legal_form_id: string;
   status: number;
   is_client_rated?: boolean;
@@ -43,21 +43,23 @@ export class UserDocumentService {
     this.pdfGeneratorService = new PdfGeneratorService();
   }
 
-
   private async getNextDocumentId(): Promise<number> {
     const lastId = await this.userDocumentRepository.getLastDocumentId();
     return lastId + 1;
   }
-
 
   public async createDocumentAndInput(
     params: CreateDocumentAndInputParams
   ): Promise<any> {
     const nextDocId = await this.getNextDocumentId();
 
+    const clientId = typeof params.client_id === 'string' 
+      ? parseInt(params.client_id, 10) || 0 // Convert string to number, default to 0 if NaN
+      : params.client_id;
+
     const userDocumentData: Partial<IUserDocument> = {
       document_id: nextDocId,
-      client_id: params.client_id,
+      client_id: clientId,
       legal_form_id: params.legal_form_id,
       status: params.status,
       is_client_rated: params.is_client_rated || false,
@@ -93,8 +95,8 @@ export class UserDocumentService {
       legal_form: relatedLegalForm ? {
         id: relatedLegalForm.id,
         name: relatedLegalForm.name,
-        price: relatedLegalForm.price,
-        final_price: relatedLegalForm.final_price,
+        price: Number(relatedLegalForm.price),
+        final_price: Number(relatedLegalForm.final_price),
       } : null,
     };
   }
@@ -103,17 +105,26 @@ export class UserDocumentService {
     page?: number,
     pageSize?: number,
     status?: number[],
-    query?: any
+    client_id?: number
   ): Promise<UserDocumentResponse> {
     const usePagination = page !== undefined && pageSize !== undefined;
     const effectivePage = usePagination ? page : 1;
     const effectivePageSize = usePagination ? pageSize : 10;
 
+    let filter: any = {};
+    
+    if (status && status.length > 0) {
+      filter.status = { $in: status };
+    }
+    
+    if (client_id !== undefined) {
+      filter.client_id = client_id;
+    }
+
     const { data, totalItems, totalPages } = await this.userDocumentRepository.findAllWithPagination(
       effectivePage,
       effectivePageSize,
-      status,
-      query
+      filter
     );
 
     const documentsWithLegalForm = await Promise.all(
@@ -126,15 +137,15 @@ export class UserDocumentService {
           const legalFormObj = legalForm.toObject();
           legalFormDetails = {
             id: legalFormObj._id,
-            category_id: legalFormObj.category, // Using category as category_id
+            category_id: legalFormObj.category,
             name: legalFormObj.name,
             price: Number(legalFormObj.price),
             final_price: Number(legalFormObj.final_price),
             description: legalFormObj.description,
             picture_url: legalFormObj.picture_url,
             category: legalFormObj.category,
-            rating: 4.0, // You might want to calculate this dynamically
-            total_created: 300 // You might want to calculate this dynamically
+            rating: 4.0,
+            total_created: 300
           };
         }
 
@@ -180,6 +191,7 @@ export class UserDocumentService {
   public async getUserDocumentById(id: string): Promise<IUserDocument | null> {
     return this.userDocumentRepository.findById(id);
   }
+
   public async getUserDocumentByDocumentId(documentId: number): Promise<IUserDocument | null> {
     return this.userDocumentRepository.findByDocumentId(documentId);
   }
