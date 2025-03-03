@@ -23,17 +23,23 @@ export class UserDocumentResolver {
 
   @Query(() => UserDocumentResponse)
   async getUserDocuments(
+    @Ctx() { clientId }: Context,
     @Arg("page", () => Int, { nullable: true }) page?: number,
     @Arg("limit", () => Int, { nullable: true }) limit?: number,
     @Arg("skip", () => Int, { nullable: true }) skip?: number,
     @Arg("status", () => [Int], { nullable: true }) status?: number[],
-    @Arg("client_id", () => String, { nullable: true }) client_id?: string,
     @Arg("paginate", () => Boolean, { nullable: true }) paginate?: boolean
   ): Promise<UserDocumentResponse> {
+    if (!clientId) {
+      throw new Error("Missing required header: client_id");
+    }
+
+    const clientIdNum = Number(clientId);
+
     if (paginate) {
-      return this.service.getAllUserDocuments(page || 1, limit || 10, status, client_id);
+      return this.service.getAllUserDocuments(page || 1, limit || 10, status, clientIdNum);
     } else {
-      return this.service.getAllUserDocuments(undefined, undefined, status, client_id);
+      return this.service.getAllUserDocuments(undefined, undefined, status, clientIdNum);
     }
   }
 
@@ -76,7 +82,6 @@ export class UserDocumentResolver {
     @Ctx() { clientId }: Context
   ): Promise<DocumentGenerationResponse> {
     try {
-      // Verify client has access to this document
       if (!clientId) {
         return {
           success: false,
@@ -86,7 +91,6 @@ export class UserDocumentResolver {
         };
       }
 
-      // Verify client has access to this document
       try {
         await this.service.verifyClientAccess(clientId, document_id);
       } catch (error) {
@@ -126,7 +130,6 @@ export class UserDocumentResolver {
     @Ctx() { clientId }: Context
   ): Promise<DocumentGenerationResponse> {
     try {
-      // Verify client has access to this document
       if (!clientId) {
         return {
           success: false,

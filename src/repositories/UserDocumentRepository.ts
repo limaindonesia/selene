@@ -21,7 +21,7 @@ export class UserDocumentRepository {
       .sort({ createdAt: -1 })
       .skip((page - 1) * pageSize)
       .limit(pageSize);
-
+      
     return {
       totalItems,
       totalPages,
