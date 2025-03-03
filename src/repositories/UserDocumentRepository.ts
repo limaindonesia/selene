@@ -10,10 +10,23 @@ export class UserDocumentRepository {
   async findAllWithPagination(
     page: number,
     pageSize: number,
-    status?: number[]
+    status?: number[],
+    additionalQuery?: any
   ): Promise<{ totalItems: number; totalPages: number; data: IUserDocument[] }> {
     const model = await this.getModel();
-    const query = status?.length ? { status: { $in: status } } : {};
+    
+    // Build the query
+    let query: any = {};
+    
+    // Add status filter if provided
+    if (status?.length) {
+      query.status = { $in: status };
+    }
+    
+    // Add additional query parameters if provided
+    if (additionalQuery) {
+      query = { ...query, ...additionalQuery };
+    }
     
     const totalItems = await model.countDocuments(query);
     const totalPages = Math.ceil(totalItems / pageSize);
@@ -22,7 +35,7 @@ export class UserDocumentRepository {
       .sort({ createdAt: -1 })
       .skip((page - 1) * pageSize)
       .limit(pageSize);
-
+      
     return {
       totalItems,
       totalPages,

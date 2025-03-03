@@ -16,7 +16,7 @@ export class LegalFormRatingResolver {
   ): Promise<RatingResponse> {
     try {
       const result = await this.service.rateLegalForm(
-        input.document_id,
+        input.id,
         input.rating,
         input.description
       );

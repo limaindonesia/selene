@@ -23,16 +23,24 @@ export class UserDocumentResolver {
 
   @Query(() => UserDocumentResponse)
   async getUserDocuments(
+    @Ctx() { clientId }: Context,
     @Arg("page", () => Int, { nullable: true }) page?: number,
     @Arg("limit", () => Int, { nullable: true }) limit?: number,
     @Arg("skip", () => Int, { nullable: true }) skip?: number,
-    @Arg("status", () => [String], { nullable: true }) status?: string[],
+    @Arg("status", () => [Int], { nullable: true }) status?: number[],
     @Arg("paginate", () => Boolean, { nullable: true }) paginate?: boolean
   ): Promise<UserDocumentResponse> {
+    if (!clientId) {
+      throw new Error("Missing required header: client_id");
+    }
+
+    const clientIdNum = Number(clientId);
+    const query = { client_id: clientIdNum };
+
     if (paginate) {
-      return this.service.getAllUserDocuments(page || 1, limit || 10, status);
+      return this.service.getAllUserDocuments(page || 1, limit || 10, status, query);
     } else {
-      return this.service.getAllUserDocuments(undefined, undefined, status);
+      return this.service.getAllUserDocuments(undefined, undefined, status, query);
     }
   }
 
