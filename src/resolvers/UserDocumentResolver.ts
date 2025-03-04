@@ -1,9 +1,16 @@
 import { Resolver, Query, Mutation, Arg, Int, Ctx } from "type-graphql";
 import { UserDocumentService } from "../services/UserDocumentService";
-import { UserDocument, UserDocumentResponse, CreateDocumentWithInput, DocumentGenerationResponse, DocumentJobResponse } from "../schemas/UserDocumentSchema";
+import { 
+  UserDocument, 
+  UserDocumentResponse, 
+  CreateDocumentWithInput, 
+  DocumentGenerationResponse, 
+  DocumentJobResponse,
+  DocumentFileUrlResponse
+} from "../schemas/UserDocumentSchema";
 import { DocumentStatus } from "../enums/DocumentStatus.enum";
 import { createReadStream } from "fs";
-import { Response } from "express";
+import { Response, Request } from "express";
 import path from "path";
 import { Stream } from "stream";
 
@@ -276,7 +283,89 @@ export class UserDocumentResolver {
   }
 
   /**
-   * Download a document
+   * Get a document download URL
+   */
+  @Query(() => DocumentFileUrlResponse)
+  async getDocumentDownloadUrl(
+    @Arg("id") id: string,
+    @Ctx() { clientId }: Context
+  ): Promise<DocumentFileUrlResponse> {
+    try {
+      if (!clientId) {
+        return {
+          success: false,
+          message: "Missing required header: client_id",
+          data: {
+            file_url: "",
+            file_name: "",
+            content_type: ""
+          }
+        };
+      }
+
+      const urlData = await this.service.getDocumentSignedUrl(id, Number(clientId), false);
+      
+      return {
+        success: true,
+        message: "Document download URL generated successfully",
+        data: urlData
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error instanceof Error ? error.message : String(error),
+        data: {
+          file_url: "",
+          file_name: "",
+          content_type: ""
+        }
+      };
+    }
+  }
+  
+  /**
+   * Get a document streaming URL
+   */
+  @Query(() => DocumentFileUrlResponse)
+  async getDocumentStreamUrl(
+    @Arg("id") id: string,
+    @Ctx() { clientId }: Context
+  ): Promise<DocumentFileUrlResponse> {
+    try {
+      if (!clientId) {
+        return {
+          success: false,
+          message: "Missing required header: client_id",
+          data: {
+            file_url: "",
+            file_name: "",
+            content_type: ""
+          }
+        };
+      }
+
+      const urlData = await this.service.getDocumentSignedUrl(id, Number(clientId), true);
+      
+      return {
+        success: true,
+        message: "Document stream URL generated successfully",
+        data: urlData
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error instanceof Error ? error.message : String(error),
+        data: {
+          file_url: "",
+          file_name: "",
+          content_type: ""
+        }
+      };
+    }
+  }
+
+  /**
+   * Download a document (Legacy method)
    */
   @Query(() => Boolean)
   async downloadDocument(
@@ -332,7 +421,7 @@ export class UserDocumentResolver {
   }
 
   /**
-   * Stream a document
+   * Stream a document (Legacy method)
    */
   @Query(() => Boolean)
   async streamDocument(

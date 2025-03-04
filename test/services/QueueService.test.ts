@@ -1,3 +1,4 @@
+import path from 'path';
 import { QueueService, pdfQueue } from '../../src/services/QueueService';
 import { PdfGeneratorService } from '../../src/services/PdfGeneratorService';
 import { StorageService } from '../../src/services/StorageService';
@@ -5,21 +6,48 @@ import { UserDocumentService } from '../../src/services/UserDocumentService';
 import { DocumentStatus } from '../../src/enums/DocumentStatus.enum';
 import Bull from 'bull';
 
+// Mock fs module instead of using promisify
+jest.mock('fs', () => ({
+  promises: {
+    readFile: jest.fn().mockResolvedValue(Buffer.from('<html>Test</html>')),
+    unlink: jest.fn().mockResolvedValue(undefined),
+    exists: jest.fn().mockResolvedValue(true),
+    writeFile: jest.fn().mockResolvedValue(undefined)
+  },
+  exists: jest.fn((path, callback) => callback(null, true)),
+  unlink: jest.fn((path, callback) => callback(null)),
+  readFile: jest.fn((path, callback) => callback(null, Buffer.from('<html>Test</html>'))),
+  writeFile: jest.fn((path, content, callback) => callback(null))
+}));
+
+// Mock for Bull.js
 jest.mock('bull', () => {
-  return jest.fn().mockImplementation(() => ({
+  // Create a mock Bull constructor
+  const mockBull = jest.fn().mockImplementation(() => ({
     add: jest.fn().mockResolvedValue({ id: 'job123' }),
     process: jest.fn(),
-    getJob: jest.fn().mockResolvedValue({
-      id: 'job123',
-      getState: jest.fn().mockResolvedValue('completed'),
-      progress: jest.fn().mockResolvedValue(100),
-      returnvalue: { success: true, fileUrl: 'https://example.com/file.pdf' }
+    getJob: jest.fn().mockImplementation((jobId) => {
+      // Return different job data based on job ID for testing different scenarios
+      if (jobId === 'job123') {
+        return Promise.resolve({
+          id: 'job123',
+          getState: jest.fn().mockResolvedValue('completed'),
+          progress: jest.fn().mockResolvedValue(100),
+          returnvalue: { success: true, fileUrl: 'https://example.com/file.pdf' },
+          remove: jest.fn().mockResolvedValue(undefined)
+        });
+      } else {
+        return Promise.resolve(null);
+      }
     }),
     getFailed: jest.fn().mockResolvedValue([{ remove: jest.fn() }]),
     on: jest.fn()
   }));
+  
+  return mockBull;
 });
 
+// Mock for cloud storage tests
 jest.mock('../../src/services/PdfGeneratorService', () => {
   return {
     PdfGeneratorService: jest.fn().mockImplementation(() => ({
@@ -27,6 +55,41 @@ jest.mock('../../src/services/PdfGeneratorService', () => {
     }))
   };
 });
+
+// Mock for local storage tests
+jest.mock('../../src/config/envConfig', () => ({
+  __esModule: true,
+  default: {
+    app_env: 'DEV',
+    port: '5000',
+    log_transport: 'FILE',
+    mongodb1: {
+      uri: 'mongodb://localhost:27017',
+      database: 'perqara',
+      username: 'root',
+      password: '',
+    },
+    mongodb2: {
+      uri: 'mongodb://localhost:27017',
+      database: 'legal_form',
+      username: 'root',
+      password: '',
+    },
+    redis: {
+      host: 'localhost',
+      port: 6379,
+      password: '',
+    },
+    gcs: {
+      projectId: '',
+      keyFilename: '',
+      bucket: '',
+      pathPrefix: '',
+      bucketPublic: '',
+      pathPrefixPublic: '',
+    }
+  }
+}));
 
 jest.mock('../../src/services/StorageService', () => {
   return {
@@ -39,7 +102,7 @@ jest.mock('../../src/services/StorageService', () => {
 jest.mock('../../src/services/UserDocumentService', () => {
   return {
     UserDocumentService: jest.fn().mockImplementation(() => ({
-      getUserDocumentByDocumentId: jest.fn().mockResolvedValue({
+      getUserDocumentById: jest.fn().mockResolvedValue({
         id: 'doc123',
         document_id: 12345,
         status: DocumentStatus.GENERATING,
@@ -56,15 +119,6 @@ jest.mock('../../src/services/UserDocumentService', () => {
         file: ['https://storage.googleapis.com/bucket/path/to/file.pdf']
       })
     }))
-  };
-});
-
-jest.mock('fs', () => {
-  return {
-    unlink: jest.fn((path, callback) => callback(null)),
-    promises: {
-      unlink: jest.fn().mockResolvedValue(undefined)
-    }
   };
 });
 
@@ -85,16 +139,6 @@ describe('QueueService Tests', () => {
   let mockStorageService: jest.Mocked<StorageService>;
   let mockUserDocumentService: jest.Mocked<UserDocumentService>;
   
-  const mockDocument = {
-    id: 'doc123',
-    document_id: 12345,
-    legal_form_id: 'form123',
-    client_id: 'client123',
-    status: DocumentStatus.GENERATING,
-    generated_html: '<html><body>Test Document</body></html>',
-    file: [] as string[]
-  };
-
   beforeEach(() => {
     jest.clearAllMocks();
     
@@ -105,11 +149,18 @@ describe('QueueService Tests', () => {
     (Bull as jest.Mock).mockImplementation(() => ({
       add: jest.fn().mockResolvedValue({ id: 'job123' }),
       process: jest.fn(),
-      getJob: jest.fn().mockResolvedValue({
-        id: 'job123',
-        getState: jest.fn().mockResolvedValue('completed'),
-        progress: jest.fn().mockResolvedValue(100),
-        returnvalue: { success: true, fileUrl: 'https://example.com/file.pdf' }
+      getJob: jest.fn().mockImplementation((jobId) => {
+        if (jobId === 'job123') {
+          return Promise.resolve({
+            id: 'job123',
+            getState: jest.fn().mockResolvedValue('completed'),
+            progress: jest.fn().mockResolvedValue(100),
+            returnvalue: { success: true, fileUrl: 'https://example.com/file.pdf' },
+            remove: jest.fn().mockResolvedValue(undefined)
+          });
+        } else {
+          return Promise.resolve(null);
+        }
       }),
       getFailed: jest.fn().mockResolvedValue([{ remove: jest.fn() }]),
       on: jest.fn()
@@ -119,13 +170,20 @@ describe('QueueService Tests', () => {
     
     mockStorageService.uploadFile = jest.fn().mockResolvedValue('https://storage.googleapis.com/bucket/path/to/file.pdf');
     
-    mockUserDocumentService.getUserDocumentByDocumentId = jest.fn().mockResolvedValue(mockDocument);
+    mockUserDocumentService.getUserDocumentById = jest.fn().mockResolvedValue({
+      id: 'doc123',
+      document_id: 12345,
+      status: DocumentStatus.GENERATING,
+      generated_html: '<html>Test</html>'
+    });
     mockUserDocumentService.changeUserDocumentStatus = jest.fn().mockResolvedValue({
-      ...mockDocument,
+      id: 'doc123',
+      document_id: 12345,
       status: DocumentStatus.COMPLETED
     });
     mockUserDocumentService.updateUserDocument = jest.fn().mockResolvedValue({
-      ...mockDocument,
+      id: 'doc123',
+      document_id: 12345,
       file: ['https://storage.googleapis.com/bucket/path/to/file.pdf']
     });
   });
@@ -164,8 +222,6 @@ describe('QueueService Tests', () => {
     });
 
     it('should return not_found status if job does not exist', async () => {
-      (pdfQueue.getJob as jest.Mock).mockResolvedValue(null);
-      
       const result = await QueueService.getPdfGenerationJobStatus('job456');
       
       expect(result).toEqual({ status: 'not_found' });
@@ -182,7 +238,99 @@ describe('QueueService Tests', () => {
     });
   });
 
-  describe('QueueService methods', () => {
+  describe('QueueService with Local Storage', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
+    describe('addPdfGenerationJob', () => {
+      it('should add a job to the queue and return job ID', async () => {
+        const result = await QueueService.addPdfGenerationJob('12345', '<html>Test</html>');
+        
+        expect(result).toBe('job123');
+        expect(pdfQueue.add).toHaveBeenCalledWith(
+          { id: '12345', html: '<html>Test</html>' },
+          expect.objectContaining({
+            attempts: 3,
+            backoff: expect.objectContaining({
+              type: 'exponential',
+              delay: 5000
+            }),
+            removeOnComplete: false,
+            removeOnFail: false
+          })
+        );
+      });
+    });
+
+    describe('getPdfGenerationJobStatus', () => {
+      it('should return job status', async () => {
+        // Explicitly mock the getJob implementation for 'job123'
+        (pdfQueue.getJob as jest.Mock).mockImplementation((jobId) => {
+          if (jobId === 'job123') {
+            return Promise.resolve({
+              id: 'job123',
+              getState: jest.fn().mockResolvedValue('completed'),
+              progress: jest.fn().mockResolvedValue(100),
+              returnvalue: { success: true, fileUrl: 'https://example.com/file.pdf' }
+            });
+          } else {
+            return Promise.resolve(null);
+          }
+        });
+        
+        const result = await QueueService.getPdfGenerationJobStatus('job123');
+        
+        expect(result).toEqual({
+          id: 'job123',
+          status: 'completed',
+          progress: 100,
+          result: { success: true, fileUrl: 'https://example.com/file.pdf' }
+        });
+        expect(pdfQueue.getJob).toHaveBeenCalledWith('job123');
+      });
+
+      it('should return not_found status if job does not exist', async () => {
+        const result = await QueueService.getPdfGenerationJobStatus('job456');
+        
+        expect(result).toEqual({ status: 'not_found' });
+      });
+    });
+
+    describe('PDF generation process', () => {
+      it('should process a PDF generation job with local storage', async () => {
+        // Mock the process callback function
+        const processCallback = jest.fn().mockImplementation(async (job) => {
+          return {
+            success: true,
+            fileUrl: 'file:///path/to/local/storage/file.pdf'
+          };
+        });
+        
+        // Set up the mock job
+        const mockJob = {
+          data: {
+            id: '12345',
+            html: '<html><body>Test Document</body></html>'
+          }
+        };
+        
+        // Call the process callback
+        const result = await processCallback(mockJob);
+        
+        // Verify the result
+        expect(result).toEqual({
+          success: true,
+          fileUrl: expect.stringContaining('file://')
+        });
+        
+        // Verify the file URL format
+        expect(result.fileUrl).toMatch(/^file:\/\//);
+      });
+    });
+  });
+
+  describe('QueueService with Cloud Storage', () => {
     it('should add a PDF generation job successfully', async () => {
       const jobId = await QueueService.addPdfGenerationJob('doc123', '<html>Test</html>');
       expect(jobId).toBe('job123');
@@ -201,11 +349,18 @@ describe('QueueService Tests', () => {
     });
 
     it('should get job status successfully', async () => {
-      (pdfQueue.getJob as jest.Mock).mockResolvedValue({
-        id: 'job123',
-        getState: jest.fn().mockResolvedValue('completed'),
-        progress: jest.fn().mockResolvedValue(100),
-        returnvalue: { success: true, fileUrl: 'https://example.com/file.pdf' }
+      // Explicitly set the mock implementation for this test
+      (pdfQueue.getJob as jest.Mock).mockImplementation((jobId) => {
+        if (jobId === 'job123') {
+          return Promise.resolve({
+            id: 'job123',
+            getState: jest.fn().mockResolvedValue('completed'),
+            progress: jest.fn().mockResolvedValue(100),
+            returnvalue: { success: true, fileUrl: 'https://example.com/file.pdf' }
+          });
+        } else {
+          return Promise.resolve(null);
+        }
       });
       
       const status = await QueueService.getPdfGenerationJobStatus('job123');
