@@ -87,19 +87,10 @@ export class UserDocumentResolver {
   @Mutation(() => UserDocument)
   async changeUserDocumentStatus(
     @Arg("document_id") document_id: number, 
-    @Arg("status", () => Int) status: DocumentStatus,
-    @Ctx() { clientId }: Context
+    @Arg("status", () => Int) status: DocumentStatus
   ): Promise<UserDocument> {
-    if (!clientId) {
-      throw new Error("Missing required header: client_id");
-    }
-
     const document = await this.service.getUserDocumentByDocumentId(document_id);
     if (!document) {
-      throw new Error("Document not found");
-    }
-
-    if (document.client_id !== Number(clientId)) {
       throw new Error("Document not found");
     }
 
