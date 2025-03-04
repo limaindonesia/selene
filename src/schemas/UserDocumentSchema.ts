@@ -228,3 +228,27 @@ export class DocumentJobResponse {
   @Field(() => DocumentJobData, { nullable: true })
   data?: DocumentJobData;
 }
+
+@ObjectType()
+export class DocumentFileUrlData {
+  @Field(() => String)
+  file_url: string;
+
+  @Field(() => String)
+  file_name: string;
+
+  @Field(() => String)
+  content_type: string;
+}
+
+@ObjectType()
+export class DocumentFileUrlResponse {
+  @Field(() => Boolean)
+  success: boolean;
+
+  @Field(() => String, { nullable: true })
+  message?: string;
+
+  @Field(() => DocumentFileUrlData)
+  data: DocumentFileUrlData;
+}

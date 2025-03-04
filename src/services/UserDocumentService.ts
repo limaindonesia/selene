@@ -10,8 +10,10 @@ import { DocumentStatus } from "../enums/DocumentStatus.enum";
 import * as QueueServiceModule from "./QueueService";
 import { StorageService } from "./StorageService";
 import { PdfGeneratorService } from "./PdfGeneratorService";
+import { RedisService } from "./RedisService";
 import fs from 'fs';
 import { promisify } from 'util';
+import env from '../config/envConfig';
 
 const unlinkAsync = promisify(fs.unlink);
 
@@ -32,6 +34,7 @@ export class UserDocumentService {
   private legalFormRepository: LegalFormRepository;
   private storageService: StorageService;
   private pdfGeneratorService: PdfGeneratorService;
+  private redisService: RedisService;
 
   constructor() {
     this.userDocumentRepository = new UserDocumentRepository();
@@ -39,6 +42,7 @@ export class UserDocumentService {
     this.legalFormRepository = new LegalFormRepository();
     this.storageService = new StorageService();
     this.pdfGeneratorService = new PdfGeneratorService();
+    this.redisService = new RedisService();
   }
 
   private async getNextDocumentId(): Promise<number> {
@@ -338,5 +342,64 @@ export class UserDocumentService {
   public async getDocumentStream(id: string): Promise<NodeJS.ReadableStream | string> {
     // Reuse the download method since it now returns a stream directly
     return this.downloadDocument(id);
+  }
+  
+  /**
+   * Get a signed URL for document access with Redis caching
+   * @param id Document ID (MongoDB ObjectId)
+   * @param clientId Client ID for access verification
+   * @param isStreamable Whether to get a streaming URL (inline disposition) vs download URL
+   * @returns Object with file URL information
+   */
+  public async getDocumentSignedUrl(id: string, clientId: number, isStreamable: boolean = false): Promise<{ file_url: string, file_name: string, content_type: string }> {
+    const existingDocument = await this.userDocumentRepository.findById(id);
+    if (!existingDocument) {
+      throw new Error('Document not found');
+    }
+
+    if (existingDocument.client_id !== clientId) {
+      throw new Error('Document not found');
+    }
+
+    if (existingDocument.status !== DocumentStatus.COMPLETED) {
+      throw new Error(`Document is not ready for download. Current status: ${existingDocument.status}`);
+    }
+
+    if (!existingDocument.file || existingDocument.file.length === 0) {
+      throw new Error('Document file not found');
+    }
+    
+    const redisKey = `document:${id}:${clientId}:${isStreamable ? 'stream' : 'download'}`;
+    
+    const cachedUrl = await this.redisService.getDocumentUrl(redisKey);
+    if (cachedUrl) {
+      return {
+        file_url: cachedUrl,
+        file_name: `document-${existingDocument.document_id}.pdf`,
+        content_type: 'application/pdf'
+      };
+    }
+    
+    const gcsPath = await this.getDocumentFilePath(id);
+    
+    const fileExists = await this.storageService.fileExists(gcsPath);
+    if (!fileExists) {
+      throw new Error('Document file not found in storage');
+    }
+    
+    const expiresIn = env.signedUrl.expirationTime;
+    
+    const redisExpiresIn = expiresIn + 5;
+    
+    const disposition = isStreamable ? 'inline' : 'attachment';
+    const signedUrl = await this.storageService.getSignedUrl(gcsPath, expiresIn, false, disposition);
+    
+    await this.redisService.storeDocumentUrl(redisKey, signedUrl, redisExpiresIn);
+    
+    return {
+      file_url: signedUrl,
+      file_name: `document-${existingDocument.document_id}.pdf`,
+      content_type: 'application/pdf'
+    };
   }
 }

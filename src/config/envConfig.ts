@@ -21,6 +21,10 @@ const env = {
     host: process.env.REDIS_HOST || 'localhost',
     port: parseInt(process.env.REDIS_PORT || '6379'),
     password: process.env.REDIS_PASSWORD || '',
+    db: parseInt(process.env.REDIS_DB || '0'),
+  },
+  signedUrl: {
+    expirationTime: parseInt(process.env.SIGNED_URL_EXPIRATION_TIME || '3600'), // 1 hour default
   },
   gcs: {
     projectId: process.env.GOOGLE_CLOUD_PROJECT_ID || '',
