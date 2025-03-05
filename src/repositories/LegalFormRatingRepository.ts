@@ -38,6 +38,12 @@ export class LegalFormRatingRepository {
     return await model.find({ legal_form_id });
   }
 
+  async findRatingByLegalFormId(legal_form_id: string): Promise<ILegalFormRating[]> {
+    const model = await this.getModel();
+    const query = { rating: { $gt: 0 }, legal_form_id: legal_form_id };
+    return await model.find(query);
+  }
+
   async findByDocumentId(document_id: string): Promise<ILegalFormRating | null> {
     const model = await this.getModel();
     return await model.findOne({ document_id });
