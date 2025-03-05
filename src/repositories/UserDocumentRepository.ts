@@ -1,4 +1,5 @@
 import { UserDocumentModel, IUserDocument } from "../models/UserDocument";
+import { DocumentStatus } from "../enums/DocumentStatus.enum";
 import { connectDB2 } from "../config/mongoConfig";
 
 export class UserDocumentRepository {
@@ -58,6 +59,16 @@ export class UserDocumentRepository {
   async findByDocumentId(document_id: number): Promise<IUserDocument | null> {
     const model = await this.getModel();
     return model.findOne({ document_id });
+  }
+
+  async countTotalDocumentCreated(legal_form_id: string): Promise<number | null> {
+    const model = await this.getModel();
+    const query = {
+      legal_form_id: legal_form_id,
+      status: { $in: [DocumentStatus.ON_PROGRESS, DocumentStatus.COMPLETED, DocumentStatus.GENERATING] }
+    };
+
+    return await model.countDocuments(query);
   }
 
   async getLastDocumentId(): Promise<number> {

@@ -52,7 +52,7 @@ export class UserDocumentService {
 
   public async createDocumentAndInput(
     params: CreateDocumentAndInputParams
-  ): Promise<any> {
+  ): Promise<UserDocument | null> {
     const nextDocId = await this.getNextDocumentId();
 
     const clientId = typeof params.client_id === 'string' 
@@ -215,7 +215,16 @@ export class UserDocumentService {
       return null;
     }
     userDocument.status = status;
-    return await this.userDocumentRepository.update(userDocument.id, userDocument);
+    const result = await this.userDocumentRepository.update(userDocument.id, userDocument);
+
+    if(status == DocumentStatus.ON_PROGRESS) {
+      const totalCreated = await this.userDocumentRepository.countTotalDocumentCreated(userDocument.legal_form_id);
+      await this.legalFormRepository.update(userDocument.legal_form_id, {
+        total_created: totalCreated
+      })
+    }
+    
+    return result;
   }
 
   public async deleteAllUserDocuments(): Promise<void> {
