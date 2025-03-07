@@ -9,7 +9,7 @@ describe("LegalForm Repository", () => {
       description: "Test Content",
       category: "Test Category",
       status: "SHOW",
-      final_price: "75000",
+      original_price: 75000,
       picture_url: "https://example.com/image.jpg",
       template_doc_id: "template1"
     });
@@ -25,7 +25,7 @@ describe("LegalForm Repository", () => {
       description: "Content 1",
       category: "Test Category",
       status: "SHOW",
-      final_price: "75000",
+      original_price: 75000,
       picture_url: "https://example.com/image.jpg",
       template_doc_id: "template1"
     });
@@ -34,7 +34,7 @@ describe("LegalForm Repository", () => {
       description: "Content 2",
       category: "Test Category",
       status: "SHOW",
-      final_price: "75000",
+      original_price: 75000,
       picture_url: "https://example.com/image.jpg",
       template_doc_id: "template1"
     });
@@ -49,7 +49,7 @@ describe("LegalForm Repository", () => {
       description: "Find Content",
       category: "Test Category",
       status: "SHOW",
-      final_price: "75000",
+      original_price: 75000,
       picture_url: "https://example.com/image.jpg",
       template_doc_id: "template1"
     });
@@ -65,7 +65,7 @@ describe("LegalForm Repository", () => {
       description: "Update Content",
       category: "Test Category",
       status: "SHOW",
-      final_price: "75000",
+      original_price: 75000,
       picture_url: "https://example.com/image.jpg",
       template_doc_id: "template1"
     });
@@ -80,7 +80,7 @@ describe("LegalForm Repository", () => {
       description: "Delete Content",
       category: "Test Category",
       status: "SHOW",
-      final_price: "75000",
+      original_price: 75000,
       picture_url: "https://example.com/image.jpg",
       template_doc_id: "template1"
     });

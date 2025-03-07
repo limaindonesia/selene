@@ -9,7 +9,7 @@ export interface ILegalForm extends Document {
   description: string;
   status: string;
   price: number;
-  final_price: number;
+  original_price: number;
   keywords: string[];
   picture_url: string;
   template_doc_id: string;
@@ -18,7 +18,7 @@ export interface ILegalForm extends Document {
   rating: string;
   total_created: number;
   formatted_price: string;
-  formatted_final_price: string;
+  formatted_original_price: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -53,7 +53,7 @@ const LegalFormSchema = new Schema<ILegalForm>({
   description: { type: String, required: true },
   status: { type: String, required: true },
   price: { type: Number, required: false },
-  final_price: { type: Number, required: true },
+  original_price: { type: Number, required: true },
   keywords: { type: [String], required: false },
   picture_url: { type: String, required: true },
   template_doc_id: { type: String, required: true },
@@ -69,8 +69,8 @@ LegalFormSchema.virtual("formatted_price").get(function () {
   return formatToRupiah(this.price);
 });
 
-LegalFormSchema.virtual("formatted_final_price").get(function () {
-  return formatToRupiah(this.final_price);
+LegalFormSchema.virtual("formatted_original_price").get(function () {
+  return formatToRupiah(this.original_price);
 });
 
 LegalFormSchema.set("toJSON", { virtuals: true });

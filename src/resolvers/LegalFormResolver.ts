@@ -74,6 +74,17 @@ export class LegalFormResolver {
     return result as LegalForm;
   }
   
+  @Query(() => LegalFormDetail, { nullable: true })
+  async GetLegalFormWithAnswer(@Arg("document_id") document_id: number): Promise<LegalForm | null> {
+    const legalForm = await this.documentService.getUserDocumentByDocumentId(document_id);
+    const result = await this.service.getLegalFormWithTemplate(legalForm.legal_form_id);
+    if (!result) {
+      return null;
+    }
+
+    return result as LegalForm;
+  }
+
   @Mutation(() => LegalForm)
   async createLegalForm(
     @Arg("data") data: LegalFormInput
