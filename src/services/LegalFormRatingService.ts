@@ -53,7 +53,7 @@ export class LegalFormRatingService {
   }
 
   private async updateLegalFormRating(legal_form_id: string): Promise<void> {
-    const allRatings = await this.ratingRepository.findByLegalFormId(legal_form_id);
+    const allRatings = await this.ratingRepository.findRatingByLegalFormId(legal_form_id);
     
     if (allRatings.length === 0) {
       return;

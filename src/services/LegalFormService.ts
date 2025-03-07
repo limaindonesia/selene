@@ -145,12 +145,13 @@ export class LegalFormService {
           id: legalForm.id,
           category: category ? category.name : "",
           name: legalForm.name,
-          price:  legalForm.price ? `Rp${legalForm.price.toLocaleString()}` : `Rp0`,
-          final_price: legalForm.final_price ? `Rp${legalForm.final_price.toLocaleString()}` : `Rp0`,
+          slug: legalForm.slug,
+          formatted_price: legalForm.formatted_price,
+          formatted_final_price: legalForm.formatted_final_price,
           description: legalForm.description,
           picture_url: legalForm.picture_url,
-          rating: "4.0",  // TO DO Replace with actual rating calculation
-          total_created: 300,  // TO DO Replace with actual total_created calculation
+          rating: legalForm.rating,
+          total_created: legalForm.total_created,
         };
       } catch (error) {
         console.error(`Error fetching category for LegalForm ${legalForm.id}:`, error);
@@ -158,12 +159,13 @@ export class LegalFormService {
           id: legalForm.id,
           category: "",
           name: legalForm.name,
-          price:  legalForm.price ? `Rp${legalForm.price.toLocaleString()}` : `Rp0`,
-          final_price: legalForm.final_price ? `Rp${legalForm.final_price.toLocaleString()}` : `Rp0`,
+          slug: legalForm.slug,
+          formatted_price: legalForm.formatted_price,
+          formatted_final_price: legalForm.formatted_final_price,
           description: legalForm.description,
           picture_url: legalForm.picture_url,
-          rating: "4.0",  // TO DO Replace with actual rating calculation
-          total_created: 300,  // TO DO Replace with actual total_created calculation
+          rating: legalForm.rating,
+          total_created: legalForm.total_created,
         };
       }
     }));
@@ -200,12 +202,12 @@ export class LegalFormService {
           id: legalForm.id,
           category: category ? category.name : "",
           name: legalForm.name,
-          price:  legalForm.price ? `Rp${legalForm.price.toLocaleString()}` : `Rp0`,
-          final_price: legalForm.final_price ? `Rp${legalForm.final_price.toLocaleString()}` : `Rp0`,
+          formatted_price: legalForm.formatted_price,
+          formatted_final_price: legalForm.formatted_final_price,
           description: legalForm.description,
           picture_url: legalForm.picture_url,
-          rating: "4.0",  // TO DO Replace with actual rating calculation
-          total_created: 300,  // TO DO Replace with actual total_created calculation
+          rating: legalForm.rating,
+          total_created: legalForm.total_created,
         };
       } catch (error) {
         console.error(`Error fetching category for LegalForm ${legalForm.id}:`, error);
@@ -213,12 +215,12 @@ export class LegalFormService {
           id: legalForm.id,
           category: "",
           name: legalForm.name,
-          price:  legalForm.price ? `Rp${legalForm.price.toLocaleString()}` : `Rp0`,
-          final_price: legalForm.final_price ? `Rp${legalForm.final_price.toLocaleString()}` : `Rp0`,
+          formatted_price: legalForm.formatted_price,
+          formatted_final_price: legalForm.formatted_final_price,
           description: legalForm.description,
           picture_url: legalForm.picture_url,
-          rating: "4.0",  // TO DO Replace with actual rating calculation
-          total_created: 300,  // TO DO Replace with actual total_created calculation
+          rating: legalForm.rating,
+          total_created: legalForm.total_created,
         };
       }
     }));
@@ -257,13 +259,13 @@ export class LegalFormService {
     const finalResult = {
       id: legalForm.id,
       name: legalForm.name,
-      price:  legalForm.price ? `Rp${legalForm.price.toLocaleString()}` : `Rp0`,
-      final_price: legalForm.final_price ? `Rp${legalForm.final_price.toLocaleString()}` : `Rp0`,
+      formatted_price: legalForm.formatted_price,
+      formatted_final_price: legalForm.formatted_final_price,
       description: legalForm.description,
       picture_url: legalForm.picture_url,
       category: category.name,
-      rating: "4.0",
-      total_created: 300,
+      rating: legalForm.rating,
+      total_created: legalForm.total_created,
       template: template,
       form_detail: formDetail,
     };
@@ -282,8 +284,8 @@ export class LegalFormService {
     const finalResult = {
       id: legalForm.id,
       name: legalForm.name,
-      price:  legalForm.price ? `Rp${legalForm.price.toLocaleString()}` : `Rp0`,
-      final_price: legalForm.final_price ? `Rp${legalForm.final_price.toLocaleString()}` : `Rp0`,
+      formatted_price: legalForm.formatted_price,
+      formatted_final_price: legalForm.formatted_final_price,
       description: legalForm.description,
       picture_url: legalForm.picture_url,
       category: category.name,

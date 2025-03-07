@@ -10,20 +10,23 @@ export class LegalForm {
   @Field()
   name: string;
 
+  @Field(() => [String], { nullable: true })
+  slug: string;
+
   @Field()
   category: string;
 
   @Field()
   description: string;
 
-  @Field()
+  @Field({ nullable: true })
   status: string;
 
   @Field()
-  price: string;
+  price: number;
 
   @Field()
-  final_price: string;
+  final_price: number;
 
   @Field(() => [String], { nullable: true })
   keywords?: string[];
@@ -45,6 +48,12 @@ export class LegalForm {
 
   @Field({ nullable: true })
   total_created: number;
+
+  @Field({ nullable: true })
+  formatted_price?: string;
+
+  @Field({ nullable: true })
+  formatted_final_price?: string;
 }
 
 @InputType()
@@ -75,6 +84,9 @@ export class LegalFormDetail {
 
   @Field()
   name: string;
+  
+  @Field()
+  slug: string;
 
   @Field()
   price: string;
