@@ -3,16 +3,18 @@ import mongoose, { Schema, Document, Connection, Model } from "mongoose";
 export interface ILegalFormRating extends Document {
   id: string;
   legal_form_id: string;
-  document_id: string;
+  document_id: number;
   rating: number;
+  description?: string;
   createdAt: Date;
   updatedAt: Date;
 }
 
 const LegalFormRatingSchema = new Schema<ILegalFormRating>({
     legal_form_id: { type: String, required: true },
-    document_id: { type: String, required: true },
+    document_id: { type: Number, required: true },
     rating: { type: Number, required: true },
+    description: { type: String, required: false },
 }, { timestamps: true });
 
 LegalFormRatingSchema.virtual("id").get(function () {

@@ -16,7 +16,7 @@ export class LegalFormDetails {
   price: number;
 
   @Field(() => Float)
-  final_price: number;
+  original_price: number;
 
   @Field()
   description: string;
@@ -32,6 +32,18 @@ export class LegalFormDetails {
 
   @Field(() => Int)
   total_created: number;
+  
+  @Field({ nullable: true })
+  formatted_price?: string;
+
+  @Field({ nullable: true })
+  formatted_original_price?: string;
+}
+
+@ObjectType()
+export class PaginationLinks {
+  @Field(() => String, { nullable: true })
+  next?: string;
 }
 
 @ObjectType()
@@ -55,11 +67,6 @@ export class Pagination {
   links: PaginationLinks;
 }
 
-@ObjectType()
-export class PaginationLinks {
-  @Field(() => String, { nullable: true })
-  next?: string;
-}
 
 @ObjectType()
 export class UserDocumentResponse {
@@ -74,9 +81,24 @@ export class UserDocumentResponse {
 }
 
 @ObjectType()
+export class LegalFormDocument {
+
+  @Field(() => ID)
+  id: string;
+
+  @Field()
+  name: string;
+
+  @Field()
+  price: number;
+
+  @Field()
+  original_price: number;
+  
+}
+
+@ObjectType()
 export class UserDocument {
-  @Field(() => LegalFormDetails, { nullable: true })
-  legal_form?: LegalFormDetails;
 
   @Field(() => ID)
   id: string;
@@ -88,7 +110,7 @@ export class UserDocument {
   legal_form_id: string;
 
   @Field()
-  client_id: string;
+  client_id: number;
 
   @Field()
   status: number;
@@ -102,8 +124,14 @@ export class UserDocument {
   @Field({ nullable: true })
   generated_at?: Date;
 
+  @Field({ nullable: true })
+  generated_html?: string;
+
   @Field(() => [String], { nullable: true })
   file?: string[];
+
+  @Field(() => LegalFormDocument, { nullable: true })
+  legal_form?: LegalFormDocument;
 
   @Field()
   createdAt: Date;
@@ -118,7 +146,7 @@ export class UserDocumentInput {
   legal_form_id: string;
 
   @Field()
-  client_id: string;
+  client_id: number;
 
   @Field()
   status: number;
@@ -132,6 +160,9 @@ export class UserDocumentInput {
   @Field({ nullable: true })
   generated_at?: Date;
 
+  @Field({ nullable: true })
+  generated_html?: string;
+
   @Field(() => [String], { nullable: true })
   file?: string[];
 }
@@ -139,7 +170,7 @@ export class UserDocumentInput {
 @InputType()
 export class CreateDocumentWithInput {
   @Field()
-  client_id: string;
+  client_id: number;
 
   @Field()
   legal_form_id: string;
@@ -157,8 +188,89 @@ export class CreateDocumentWithInput {
   generated_at?: string;
 
   @Field({ nullable: true })
+  generated_html?: string;
+
+  @Field({ nullable: true })
   file?: string;
 
-  @Field(() => GraphQLJSON)
+  @Field(() => GraphQLJSON, { nullable: true })
   input: any;
+}
+
+@ObjectType()
+export class DocumentGenerationData {
+  @Field(() => Int, { nullable: true })
+  document_id?: number;
+
+  @Field({ nullable: true })
+  id?: string;
+
+  @Field({ nullable: true })
+  job_id?: string;
+
+  @Field()
+  status: string;
+}
+
+@ObjectType()
+export class DocumentGenerationResponse {
+  @Field()
+  success: boolean;
+
+  @Field({ nullable: true })
+  message?: string;
+
+  @Field(() => DocumentGenerationData, { nullable: true })
+  data?: DocumentGenerationData;
+}
+
+@ObjectType()
+export class DocumentJobData {
+  @Field()
+  job_id: string;
+
+  @Field()
+  status: string;
+
+  @Field(() => Float, { nullable: true })
+  progress?: number;
+
+  @Field(() => GraphQLJSON, { nullable: true })
+  result?: any;
+}
+
+@ObjectType()
+export class DocumentJobResponse {
+  @Field()
+  success: boolean;
+
+  @Field({ nullable: true })
+  message?: string;
+
+  @Field(() => DocumentJobData, { nullable: true })
+  data?: DocumentJobData;
+}
+
+@ObjectType()
+export class DocumentFileUrlData {
+  @Field(() => String)
+  file_url: string;
+
+  @Field(() => String)
+  file_name: string;
+
+  @Field(() => String)
+  content_type: string;
+}
+
+@ObjectType()
+export class DocumentFileUrlResponse {
+  @Field(() => Boolean)
+  success: boolean;
+
+  @Field(() => String, { nullable: true })
+  message?: string;
+
+  @Field(() => DocumentFileUrlData)
+  data: DocumentFileUrlData;
 }

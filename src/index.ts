@@ -1,25 +1,32 @@
 import "reflect-metadata";
-import { ApolloServer } from '@apollo/server';
-import { expressMiddleware } from '@apollo/server/express4';
-import { ApolloServerPluginDrainHttpServer } from '@apollo/server/plugin/drainHttpServer';
 import express from "express";
 import cors from "cors";
+import http from "http";
+import { ApolloServer } from "@apollo/server";
+import { expressMiddleware } from "@apollo/server/express4";
+import { ApolloServerPluginDrainHttpServer } from "@apollo/server/plugin/drainHttpServer";
 import { buildSchema } from "type-graphql";
-import { LegalFormResolver } from "./resolvers/LegalFormResolver";
-import { CategoryResolver } from "./resolvers/CategoryResolver";
-import { UserDocumentResolver } from "./resolvers/UserDocumentResolver";
-import { UserInputResolver } from "./resolvers/UserInputResolver";
-import http from 'http';
-import bodyParser from "body-parser";
+
 import { connectDB1, connectDB2 } from "./config/mongoConfig";
 import env from "./config/envConfig";
+import { 
+  LegalFormResolver,
+  CategoryResolver,
+  UserDocumentResolver,
+  UserInputResolver,
+  LegalFormRatingResolver
+} from "./resolvers";
 
+// Create directory for storage keys if it doesn't exist
+import fs from 'fs';
+import path from 'path';
+const storageDir = path.join(__dirname, '..', 'storage', 'keys');
+fs.mkdirSync(storageDir, { recursive: true });
 
 async function main() {
     const app = express();
+
     app.use(cors());
-    app.use(bodyParser.json());
-  
     const httpServer = http.createServer(app);
 
     await connectDB1();
@@ -30,7 +37,8 @@ async function main() {
             LegalFormResolver,
             CategoryResolver,
             UserDocumentResolver,
-            UserInputResolver
+            UserInputResolver,
+            LegalFormRatingResolver
         ],
         validate: false
     });
@@ -42,21 +50,26 @@ async function main() {
 
     await server.start();
 
-    app.get('/', (req, res) => { res.send('LEGAL-FORM-SERVICE') });
+    app.get('/', (req, res) => {
+        res.send('LEGAL-FORM-SERVICE');
+    });
 
     app.use(
         "/graphql",
-        cors<cors.CorsRequest>(),
-        bodyParser.json(),
-        expressMiddleware(server)
+        express.json(),
+        expressMiddleware(server, {
+            context: async ({ req, res }) => ({ 
+                req, 
+                res,
+                clientId: req.headers['client_id'] as string 
+            }),
+        })
     );
 
     const PORT = env.port;
-    await new Promise<void>((resolve) => {
-        httpServer.listen({ port: PORT }, resolve);
+    httpServer.listen(PORT, () => {
+        console.log(`🚀 Server ready at http://localhost:${PORT}/graphql`);
     });
-
-    console.log(`🚀 Server ready at http://localhost:${PORT}/graphql`);
 }
 
 main().catch((err) => {

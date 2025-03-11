@@ -3,8 +3,15 @@ import { GraphQLJSON } from "graphql-scalars";
 
 @ObjectType()
 export class LegalForm {
+
+  @Field(() => ID)
+  id: string;
+
   @Field()
   name: string;
+
+  @Field(() => [String], { nullable: true })
+  slug: string;
 
   @Field()
   category: string;
@@ -12,14 +19,14 @@ export class LegalForm {
   @Field()
   description: string;
 
-  @Field()
+  @Field({ nullable: true })
   status: string;
 
   @Field()
   price: number;
 
   @Field()
-  final_price: number;
+  original_price: number;
 
   @Field(() => [String], { nullable: true })
   keywords?: string[];
@@ -35,6 +42,18 @@ export class LegalForm {
 
   @Field(() => [GraphQLJSON], { nullable: true })
   form_detail?: any[];
+
+  @Field({ nullable: true })
+  rating: string;
+
+  @Field({ nullable: true })
+  total_created: number;
+
+  @Field({ nullable: true })
+  formatted_price?: string;
+
+  @Field({ nullable: true })
+  formatted_original_price?: string;
 }
 
 @InputType()
@@ -49,13 +68,10 @@ export class LegalFormInput {
 @ObjectType()
 export class PaginatedLegalForms {
   @Field(() => Int)
-  totalItems: number;
+  total_items: number;
 
   @Field(() => Int)
-  totalPages: number;
-
-  @Field(() => Int)
-  currentPage: number;
+  current_page: number;
 
   @Field(() => [LegalForm])
   data: LegalForm[];
@@ -63,17 +79,20 @@ export class PaginatedLegalForms {
 
 @ObjectType()
 export class LegalFormDetail {
-  @Field()
+  @Field(() => ID)
   id: string;
 
   @Field()
   name: string;
+  
+  @Field()
+  slug: string;
 
   @Field()
   price: string;
 
   @Field()
-  final_price: string;
+  original_price: string;
 
   @Field()
   description: string;
@@ -84,12 +103,21 @@ export class LegalFormDetail {
   @Field()
   category: string;
 
-  @Field()
+  @Field({ nullable: true })
   rating: string;
 
-  @Field()
+  @Field({ nullable: true })
   total_created: number;
-
+  
   @Field()
   template: string;
+
+  @Field(() => [GraphQLJSON], { nullable: true })
+  form_detail?: any[];
+
+  @Field({ nullable: true })
+  formatted_price?: string;
+
+  @Field({ nullable: true })
+  formatted_original_price?: string;
 }

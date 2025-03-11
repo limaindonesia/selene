@@ -28,6 +28,11 @@ export class CategoryRepository {
     return model.findOne({ name: name });
   }
 
+  async findByNames(names: string[]): Promise<ICategory[] | null> {
+    const model = await this.getModel();
+    return model.find( { name : { $in : names } } );
+  }
+
   async create(data: Partial<ICategory>): Promise<ICategory> {
     const model = await this.getModel();
     const category = new model(data);
