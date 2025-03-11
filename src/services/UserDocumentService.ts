@@ -98,7 +98,7 @@ export class UserDocumentService {
         id: relatedLegalForm.id,
         name: relatedLegalForm.name,
         price: Number(relatedLegalForm.price),
-        final_price: Number(relatedLegalForm.final_price),
+        original_price: Number(relatedLegalForm.original_price),
       } : null,
     };
   }
@@ -142,7 +142,7 @@ export class UserDocumentService {
             category_id: legalFormObj.category,
             name: legalFormObj.name,
             price: Number(legalFormObj.price),
-            final_price: Number(legalFormObj.final_price),
+            original_price: Number(legalFormObj.original_price),
             description: legalFormObj.description,
             picture_url: legalFormObj.picture_url,
             category: legalFormObj.category,

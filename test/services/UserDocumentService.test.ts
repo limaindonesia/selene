@@ -79,7 +79,7 @@ describe("UserDocument Service", () => {
     description: "Test Description",
     status: LegalFormStatus.SHOW,
     price: "100000",
-    final_price: "75000",
+    original_price: "75000",
     picture_url: "https://example.com/image.jpg",
     template_doc_id: "template1",
     toObject: () => ({
@@ -89,7 +89,7 @@ describe("UserDocument Service", () => {
       description: "Test Description",
       status: LegalFormStatus.SHOW,
       price: "100000",
-      final_price: "75000",
+      original_price: "75000",
       picture_url: "https://example.com/image.jpg",
       template_doc_id: "template1"
     })
@@ -141,7 +141,8 @@ describe("UserDocument Service", () => {
         data: [mockUserDocument],
         totalItems: 1,
         totalPages: 1
-      })
+      }),
+      countTotalDocumentCreated: jest.fn().mockRejectedValue(1)
     };
     
     mockUserInputRepository = {
@@ -153,7 +154,8 @@ describe("UserDocument Service", () => {
     };
     
     mockLegalFormRepository = {
-      findById: jest.fn().mockResolvedValue(mockLegalForm)
+      findById: jest.fn().mockResolvedValue(mockLegalForm),
+      update: jest.fn().mockResolvedValue(mockLegalForm),
     };
     
     mockStorageService = {
@@ -253,6 +255,7 @@ describe("UserDocument Service", () => {
   });
 
   it("should change document status", async () => {
+    mockUserDocumentRepository.countTotalDocumentCreated.mockResolvedValueOnce();
     const result = await service.changeUserDocumentStatus("doc-123", DocumentStatus.ON_PROGRESS);
     
     expect(result).toBeDefined();
@@ -309,6 +312,8 @@ describe("UserDocument Service", () => {
 
   describe("Test 5: Change document status", () => {
     it("runs test", async () => {
+
+      mockUserDocumentRepository.countTotalDocumentCreated.mockResolvedValueOnce();
       const result = await service.changeUserDocumentStatus("doc-123", DocumentStatus.ON_PROGRESS);
       
       expect(result).toBeDefined();

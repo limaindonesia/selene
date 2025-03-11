@@ -26,7 +26,7 @@ export class LegalForm {
   price: number;
 
   @Field()
-  final_price: number;
+  original_price: number;
 
   @Field(() => [String], { nullable: true })
   keywords?: string[];
@@ -53,7 +53,7 @@ export class LegalForm {
   formatted_price?: string;
 
   @Field({ nullable: true })
-  formatted_final_price?: string;
+  formatted_original_price?: string;
 }
 
 @InputType()
@@ -92,7 +92,7 @@ export class LegalFormDetail {
   price: string;
 
   @Field()
-  final_price: string;
+  original_price: string;
 
   @Field()
   description: string;
@@ -115,4 +115,9 @@ export class LegalFormDetail {
   @Field(() => [GraphQLJSON], { nullable: true })
   form_detail?: any[];
 
+  @Field({ nullable: true })
+  formatted_price?: string;
+
+  @Field({ nullable: true })
+  formatted_original_price?: string;
 }

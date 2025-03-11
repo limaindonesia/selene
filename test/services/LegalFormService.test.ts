@@ -20,8 +20,8 @@ interface MockLegalForm {
   description: string;
   category: string;
   status: string;
-  price: string;
-  final_price: string;
+  price: number;
+  original_price: number;
   picture_url: string;
   template_doc_id: string;
   [key: string]: any;
@@ -90,8 +90,8 @@ describe("LegalForm Service", () => {
       description: "Service Content",
       category: "Test Category",
       status: "SHOW",
-      price: "100000",
-      final_price: "75000",
+      price: 100000,
+      original_price: 75000,
       picture_url: "https://example.com/image.jpg",
       template_doc_id: "template1"
     });
@@ -105,8 +105,8 @@ describe("LegalForm Service", () => {
       description: "Content 1",
       category: "Test Category",
       status: "SHOW",
-      price: "100000",
-      final_price: "75000",
+      price: 100000,
+      original_price: 75000,
       picture_url: "https://example.com/image.jpg",
       template_doc_id: "template1"
     });
@@ -115,8 +115,8 @@ describe("LegalForm Service", () => {
       description: "Content 2",
       category: "Test Category",
       status: "SHOW",
-      price: "100000",
-      final_price: "75000",
+      price: 100000,
+      original_price: 75000,
       picture_url: "https://example.com/image.jpg",
       template_doc_id: "template1"
     });
@@ -131,8 +131,8 @@ describe("LegalForm Service", () => {
       description: "Old Content",
       category: "Test Category",
       status: "SHOW",
-      price: "100000",
-      final_price: "75000",
+      price: 100000,
+      original_price: 75000,
       picture_url: "https://example.com/image.jpg",
       template_doc_id: "template1"
     });
@@ -150,8 +150,8 @@ describe("LegalForm Service", () => {
       description: "Delete Content",
       category: "Test Category",
       status: "SHOW",
-      price: "100000",
-      final_price: "75000",
+      price: 100000,
+      original_price: 75000,
       picture_url: "https://example.com/image.jpg",
       template_doc_id: "template1"
     });

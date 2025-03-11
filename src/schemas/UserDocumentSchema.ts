@@ -16,7 +16,7 @@ export class LegalFormDetails {
   price: number;
 
   @Field(() => Float)
-  final_price: number;
+  original_price: number;
 
   @Field()
   description: string;
@@ -32,6 +32,12 @@ export class LegalFormDetails {
 
   @Field(() => Int)
   total_created: number;
+  
+  @Field({ nullable: true })
+  formatted_price?: string;
+
+  @Field({ nullable: true })
+  formatted_original_price?: string;
 }
 
 @ObjectType()
@@ -87,7 +93,7 @@ export class LegalFormDocument {
   price: number;
 
   @Field()
-  final_price: number;
+  original_price: number;
   
 }
 

@@ -24,8 +24,8 @@ describe('LegalForm Model', () => {
       description: 'This is a test content',
       category: 'test-category',
       status: 'SHOW',
-      price: '100000',
-      final_price: '75000',
+      price: 100000,
+      original_price: 75000,
       picture_url: 'https://example.com/image.jpg',
       template_doc_id: 'template1'
     });
@@ -36,8 +36,8 @@ describe('LegalForm Model', () => {
       description: 'This is a test content',
       category: 'test-category',
       status: 'SHOW',
-      price: '100000',
-      final_price: '75000',
+      price: 100000,
+      original_price: 75000,
       picture_url: 'https://example.com/image.jpg',
       template_doc_id: 'template1',
       save: saveMock
