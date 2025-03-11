@@ -32,6 +32,12 @@ export class LegalFormDetails {
 
   @Field(() => Int)
   total_created: number;
+  
+  @Field({ nullable: true })
+  formatted_price?: string;
+
+  @Field({ nullable: true })
+  formatted_original_price?: string;
 }
 
 @ObjectType()

@@ -77,7 +77,7 @@ export class LegalFormResolver {
   @Query(() => LegalFormDetail, { nullable: true })
   async GetLegalFormWithAnswer(@Arg("document_id") document_id: number): Promise<LegalForm | null> {
     const legalForm = await this.documentService.getUserDocumentByDocumentId(document_id);
-    const result = await this.service.getLegalFormWithTemplate(legalForm.legal_form_id);
+    const result = await this.service.getLegalFormWithAnswer(legalForm.legal_form_id, document_id);
     if (!result) {
       return null;
     }

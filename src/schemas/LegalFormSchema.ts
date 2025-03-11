@@ -115,4 +115,9 @@ export class LegalFormDetail {
   @Field(() => [GraphQLJSON], { nullable: true })
   form_detail?: any[];
 
+  @Field({ nullable: true })
+  formatted_price?: string;
+
+  @Field({ nullable: true })
+  formatted_original_price?: string;
 }

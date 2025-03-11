@@ -23,23 +23,62 @@ export interface ILegalForm extends Document {
   updatedAt: Date;
 }
 
-export interface Question {
-  no: number;
-  element_type: string;
-  details_basic: {
-    question: string;
-    type: string;
-    placeholder: string;
-    formatting_type: string;
-    is_mandatory: boolean;
-    hint: string;
-  };
-  details_advance?: any
-}
-
 export interface FormDetail {
   step: number;
   questions: Question[];
+}
+
+interface Question {
+  no: number;
+  element_type: string;
+  details_basic?: DetailsBasic;
+  details_advance?: DetailsAdvance;
+}
+
+interface DetailsBasic {
+  question: string;
+  type: string;
+  placeholder: string;
+  formatting_type?: string;
+  is_mandatory: boolean;
+  hint?: string;
+  answer?: string; 
+}
+
+interface DetailsAdvance {
+  advance_element_detail_type: string;
+  header: string;
+  is_mandatory: boolean;
+  hint?: string;
+  conditional_question?: string;
+  list_label_button?: string;
+  list_formatting_type?: string;
+  structures: Structure[];
+  answers?: AdvanceAnswer[];
+}
+
+interface AdvanceAnswer {
+  no: number;
+  variable: {
+    [key: string]: string;
+  };
+}
+
+interface Structure {
+  no: number;
+  condition?: any;
+  template: string;
+  questions: StructureQuestion[];
+}
+
+interface StructureQuestion {
+  variable: string;
+  question: string;
+  type: string;
+  placeholder: string;
+  formatting_type?: string;
+  is_mandatory: boolean;
+  hint?: string;
 }
 
 export interface ILegalCategory extends Document {

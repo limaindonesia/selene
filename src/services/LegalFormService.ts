@@ -1,7 +1,9 @@
 import { LegalFormRepository } from "../repositories/LegalFormRepository";
 import { LegalFormTemplateRepository } from "../repositories/LegalFormTemplateRepository";
 import { CategoryRepository } from "../repositories/CategoryRepository";
+import { UserInputRepository } from "../repositories/UserInputRepository";
 import { ILegalForm, FormDetail } from "../models/LegalForm";
+import { UserInput } from "../models/UserInput";
 import { ILegalFormTemplate } from "../models/LegalFormTemplate";
 import { LoggingMiddleware, ValidationMiddleware, ExecutionTimeMiddleware } from "../middleware/LegalFormMiddleware";
 
@@ -9,11 +11,13 @@ export class LegalFormService {
   private repository: LegalFormRepository;
   private templateRepository: LegalFormTemplateRepository;
   private categoryRepository: CategoryRepository;
+  private userInputRepository: UserInputRepository;
 
   constructor() {
     this.repository = new LegalFormRepository();
     this.templateRepository = new LegalFormTemplateRepository();
     this.categoryRepository = new CategoryRepository();
+    this.userInputRepository = new UserInputRepository();
   }
 
   private async applyMiddleware(
@@ -273,6 +277,63 @@ export class LegalFormService {
     return finalResult;
   }
 
+  public async getLegalFormWithAnswer(id: string, document_id: number): Promise<any | null> {
+    const legalForm: ILegalForm | null = await this.repository.findById(id);
+    if (!legalForm) {
+      return null;
+    }
+
+    const templateDoc: ILegalFormTemplate | null = await this.templateRepository.findById(
+      legalForm.template_doc_id
+    );
+
+    const category = await this.categoryRepository.findByStringId(legalForm.category);
+
+    const formDetail: FormDetail[] = legalForm.form_detail;
+
+    const userInput = await this.userInputRepository.findOneByDocumentId(document_id);
+
+    const combinedResult = await this.combineTemplateWithAnswers(formDetail, userInput.input);
+
+    const finalResult = {
+      id: legalForm.id,
+      name: legalForm.name,
+      formatted_price: legalForm.formatted_price,
+      formatted_original_price: legalForm.formatted_original_price,
+      description: legalForm.description,
+      picture_url: legalForm.picture_url,
+      category: category.name,
+      rating: legalForm.rating,
+      total_created: legalForm.total_created,
+      template: templateDoc ? templateDoc.template : "",
+      form_detail: combinedResult,
+    };
+
+    return finalResult;
+  }
+
+  async combineTemplateWithAnswers(
+    formDetail: FormDetail[],
+    userInput: UserInput[]
+  ): Promise<FormDetail[]> {
+
+    formDetail.forEach((step) => {
+      step.questions.forEach((question) => {
+        const matchedInput = userInput.find((input) => input.no === question.no);
+        if (matchedInput) {
+          if (question.element_type === "BASIC" && question.details_basic) {
+            question.details_basic.answer = matchedInput.answer ?? '';
+          }
+          else if (question.element_type === "ADVANCE" && question.details_advance) {
+            question.details_advance.answers = matchedInput.answers ?? [];
+          }
+        }
+      });
+    });
+  
+    return formDetail;
+  }
+  
   public async getLegalFormDetailById(id: string): Promise<any | null> {
     const legalForm: ILegalForm | null = await this.repository.findById(id);
     if (!legalForm) {
@@ -289,8 +350,8 @@ export class LegalFormService {
       description: legalForm.description,
       picture_url: legalForm.picture_url,
       category: category.name,
-      rating: "4.0",
-      total_created: 300,
+      rating: legalForm.rating,
+      total_created: legalForm.total_created,
     };
 
     return finalResult;
