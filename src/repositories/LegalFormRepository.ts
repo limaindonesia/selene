@@ -17,6 +17,11 @@ export class LegalFormRepository {
     return await model.findById(id);
   }
 
+  async findBySlug(slug: string): Promise<ILegalForm | null> {
+    const model = await this.getModel();
+    return await model.findOne({slug});
+  }
+
   async create(data: Partial<ILegalForm>): Promise<ILegalForm> {
     const model = await this.getModel();
     const form = new model(data);
@@ -54,20 +59,21 @@ export class LegalFormRepository {
 
     const model = await this.getModel();
 
-    const filter: any = {};
-    
-    filter.status = 'SHOW';
+    const filter: any = { status: 'SHOW' };
 
     if (keyword) {
-      filter.name = { $regex: keyword, $options: "i" }; 
+      filter.$or = [
+        { name: { $regex: new RegExp(keyword, 'i') } },
+        { keywords: { $regex: new RegExp(keyword, 'i') } },
+      ];
     }
 
-    if (category) {
-      filter.category = { $in: category};
+    if (category && category.length > 0) {
+      filter.category = { $in: category };
     }
 
     const total_items = await model.countDocuments(filter);
-    
+
     const data = await model
       .find(filter)
       .skip((page - 1) * limit)

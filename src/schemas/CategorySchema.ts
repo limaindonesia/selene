@@ -6,7 +6,7 @@ export class Category {
   id: string;
 
   @Field()
-  string_id: string;
+  slug: string;
 
   @Field()
   name: string;
@@ -27,7 +27,7 @@ export class Category {
 @InputType()
 export class CategoryInput {
   @Field()
-  string_id: string;
+  slug: string;
 
   @Field()
   name: string;

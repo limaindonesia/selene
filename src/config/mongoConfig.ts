@@ -22,7 +22,6 @@ export const connectDB1 = async (): Promise<Connection> => {
       env.mongodb1.database
     );
     const connection = mongoose.createConnection(env.mongodb1.uri || "", options);
-    console.log("Connected to Database 1");
     return connection;
   } catch (error) {
     console.error("Error connecting to Database 1:", error);
@@ -38,7 +37,6 @@ export const connectDB2 = async (): Promise<Connection> => {
       env.mongodb2.database
     );
     const connection = mongoose.createConnection(env.mongodb2.uri || "", options);
-    console.log("Connected to Database 2");
     return connection;
   } catch (error) {
     console.error("Error connecting to Database 2:", error);

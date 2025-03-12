@@ -1,10 +1,10 @@
 import { CategoryModel, ICategory } from "../models/Category";
-import { connectDB2 } from "../config/mongoConfig";
+import { connectDB1 } from "../config/mongoConfig";
 import { Model } from "mongoose";
 
 export class CategoryRepository {
   private async getModel(): Promise<Model<ICategory>> {
-    const connection = await connectDB2();
+    const connection = await connectDB1();
     return CategoryModel(connection);
   }
 
@@ -18,9 +18,9 @@ export class CategoryRepository {
     return model.findById(id);
   }
   
-  async findByStringId(stringId: string): Promise<ICategory | null> {
+  async findBySlug(slug: string): Promise<ICategory | null> {
     const model = await this.getModel();
-    return model.findOne({ string_id: stringId });
+    return model.findOne({ slug: slug });
   }
 
   async findByName(name: string): Promise<ICategory | null> {

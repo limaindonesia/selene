@@ -139,6 +139,7 @@ export class UserDocumentService {
           const legalFormObj = legalForm.toObject();
           legalFormDetails = {
             id: legalFormObj._id,
+            slug: legalFormObj.slug,
             category_id: legalFormObj.category,
             name: legalFormObj.name,
             price: Number(legalFormObj.price),
@@ -154,6 +155,7 @@ export class UserDocumentService {
         return {
           ...docObj,
           id: docObj._id,
+          slug: docObj.slug,
           document_id: docObj.document_id,
           legal_form_id: docObj.legal_form_id,
           client_id: docObj.client_id,

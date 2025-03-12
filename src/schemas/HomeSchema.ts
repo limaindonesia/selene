@@ -3,7 +3,7 @@ import { ObjectType, Field, ID } from "type-graphql";
 @ObjectType()
 export class Categories {
   @Field(() => ID)
-  id: string;
+  slug: string;
 
   @Field()
   name: string;
@@ -21,7 +21,7 @@ export class Categories {
 @ObjectType()
 export class Template {
   @Field(() => ID)
-  id: string;
+  slug: string;
 
   @Field()
   name: string;

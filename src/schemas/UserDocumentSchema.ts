@@ -7,6 +7,9 @@ export class LegalFormDetails {
   id: string;
 
   @Field()
+  slug: string;
+
+  @Field()
   category_id: string;
 
   @Field()
