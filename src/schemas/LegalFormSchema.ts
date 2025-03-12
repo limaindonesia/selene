@@ -4,14 +4,17 @@ import { GraphQLJSON } from "graphql-scalars";
 @ObjectType()
 export class LegalForm {
 
-  @Field(() => ID)
+  @Field(() => ID, { nullable: true })
   id: string;
 
   @Field()
   name: string;
 
-  @Field(() => [String], { nullable: true })
+  @Field(() => String, { nullable: true })
   slug: string;
+
+  @Field()
+  category_id: string;
 
   @Field()
   category: string;
@@ -22,10 +25,10 @@ export class LegalForm {
   @Field({ nullable: true })
   status: string;
 
-  @Field()
+  @Field({ nullable: true })
   price: number;
 
-  @Field()
+  @Field({ nullable: true })
   original_price: number;
 
   @Field(() => [String], { nullable: true })
@@ -79,7 +82,7 @@ export class PaginatedLegalForms {
 
 @ObjectType()
 export class LegalFormDetail {
-  @Field(() => ID)
+  @Field(() => ID, { nullable: true })
   id: string;
 
   @Field()
@@ -88,10 +91,10 @@ export class LegalFormDetail {
   @Field()
   slug: string;
 
-  @Field()
+  @Field({ nullable: true })
   price: string;
 
-  @Field()
+  @Field({ nullable: true })
   original_price: string;
 
   @Field()
@@ -99,6 +102,9 @@ export class LegalFormDetail {
 
   @Field()
   picture_url: string;
+
+  @Field()
+  category_id: string;
 
   @Field()
   category: string;

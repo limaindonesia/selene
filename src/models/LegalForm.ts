@@ -5,6 +5,7 @@ export interface ILegalForm extends Document {
   id: string;
   name: string;
   slug: string;
+  category_id: string;
   category: string;
   description: string;
   status: string;
@@ -87,6 +88,7 @@ export interface ILegalCategory extends Document {
 }
 
 const LegalFormSchema = new Schema<ILegalForm>({
+  slug: { type: String, required: true, unique: true},
   name: { type: String, required: true },
   category: { type: String, ref: "m_categories", required: true },
   description: { type: String, required: true },

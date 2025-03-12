@@ -85,14 +85,13 @@ export class LegalFormService {
     const categories = await Promise.all(
       categoriesAggregation.map(async (category) => {
         try {
-          const data = await this.categoryRepository.findByStringId(category.category);
-          
+          const data = await this.categoryRepository.findBySlug(category.category);
           if (!data) {
             return;
           }
   
           return {
-            id: category.category,
+            slug: category.category,
             name: data.name,
             icon_url: data.icon_url,
             description: data.description,
@@ -106,7 +105,7 @@ export class LegalFormService {
     );
   
     const transformedTemplates = templates.map((template) => ({
-      id: template._id.toString(),
+      slug: template.slug,
       name: template.name,
       description: template.description,
       picture_url: template.picture_url,
@@ -128,28 +127,25 @@ export class LegalFormService {
     var filterCategory: any;
 
     if (category) {
-      const categories = category.split(/\s*,\s*/);
-      const categoryData = await this.categoryRepository.findByNames(categories);
-  
-      filterCategory = categoryData.map(({ string_id }) => string_id);
+      filterCategory = category.split(/\s*,\s*/);
     }
 
     const { total_items, current_page, data } = await this.repository.findAllWithPagination(
       page,
       limit,
       keyword,
-      category ?? filterCategory
+      filterCategory
     );
   
     const formattedData = await Promise.all(data.map(async (legalForm) => {
       try {
-        const category = await this.categoryRepository.findByStringId(legalForm.category);
+        const category = await this.categoryRepository.findBySlug(legalForm.category);
   
         return {
-          id: legalForm.id,
+          slug: legalForm.slug,
+          category_id: legalForm.category,
           category: category ? category.name : "",
           name: legalForm.name,
-          slug: legalForm.slug,
           formatted_price: legalForm.formatted_price,
           formatted_original_price: legalForm.formatted_original_price,
           description: legalForm.description,
@@ -158,12 +154,12 @@ export class LegalFormService {
           total_created: legalForm.total_created,
         };
       } catch (error) {
-        console.error(`Error fetching category for LegalForm ${legalForm.id}:`, error);
+        console.error(`Error fetching category for LegalForm ${legalForm.slug}:`, error);
         return {
-          id: legalForm.id,
+          slug: legalForm.slug,
+          category_id: legalForm.category,
           category: "",
           name: legalForm.name,
-          slug: legalForm.slug,
           formatted_price: legalForm.formatted_price,
           formatted_original_price: legalForm.formatted_original_price,
           description: legalForm.description,
@@ -190,20 +186,18 @@ export class LegalFormService {
     var filterCategory: any;
 
     if (category) {
-      const categories = category.split(/\s*,\s*/);
-      const categoryData = await this.categoryRepository.findByNames(categories);
-  
-      filterCategory = categoryData.map(({ string_id }) => string_id);
+      filterCategory = category.split(/\s*,\s*/);
     }
 
     const data = await this.repository.findByFilters(keyword, filterCategory, limit);
  
     const formattedData = await Promise.all(data.map(async (legalForm) => {
       try {
-        const category = await this.categoryRepository.findByStringId(legalForm.category);
+        const category = await this.categoryRepository.findBySlug(legalForm.category);
   
         return {
-          id: legalForm.id,
+          slug: legalForm.slug,
+          category_id: legalForm.category,
           category: category ? category.name : "",
           name: legalForm.name,
           formatted_price: legalForm.formatted_price,
@@ -214,9 +208,10 @@ export class LegalFormService {
           total_created: legalForm.total_created,
         };
       } catch (error) {
-        console.error(`Error fetching category for LegalForm ${legalForm.id}:`, error);
+        console.error(`Error fetching category for LegalForm ${legalForm.slug}:`, error);
         return {
-          id: legalForm.id,
+          slug: legalForm.slug,
+          category_id: legalForm.category,
           category: "",
           name: legalForm.name,
           formatted_price: legalForm.formatted_price,
@@ -232,8 +227,8 @@ export class LegalFormService {
     return formattedData;
   }
 
-  public async getLegalFormWithTemplate(id: string, preview: boolean = false): Promise<any | null> {
-    const legalForm: ILegalForm | null = await this.repository.findById(id);
+  public async getLegalFormWithTemplate(slug: string, preview: boolean = false): Promise<any | null> {
+    const legalForm: ILegalForm | null = await this.repository.findBySlug(slug);
     if (!legalForm) {
       return null;
     }
@@ -242,7 +237,7 @@ export class LegalFormService {
       legalForm.template_doc_id
     );
 
-    const category = await this.categoryRepository.findByStringId(legalForm.category);
+    const category = await this.categoryRepository.findBySlug(legalForm.category);
 
     let template = templateDoc ? templateDoc.template : "";
 
@@ -261,12 +256,13 @@ export class LegalFormService {
     }
 
     const finalResult = {
-      id: legalForm.id,
+      slug: legalForm.slug,
       name: legalForm.name,
       formatted_price: legalForm.formatted_price,
       formatted_original_price: legalForm.formatted_original_price,
       description: legalForm.description,
       picture_url: legalForm.picture_url,
+      category_id: legalForm.category,
       category: category.name,
       rating: legalForm.rating,
       total_created: legalForm.total_created,
@@ -287,7 +283,7 @@ export class LegalFormService {
       legalForm.template_doc_id
     );
 
-    const category = await this.categoryRepository.findByStringId(legalForm.category);
+    const category = await this.categoryRepository.findBySlug(legalForm.category);
 
     const formDetail: FormDetail[] = legalForm.form_detail;
 
@@ -296,12 +292,13 @@ export class LegalFormService {
     const combinedResult = await this.combineTemplateWithAnswers(formDetail, userInput.input);
 
     const finalResult = {
-      id: legalForm.id,
+      slug: legalForm.slug,
       name: legalForm.name,
       formatted_price: legalForm.formatted_price,
       formatted_original_price: legalForm.formatted_original_price,
       description: legalForm.description,
       picture_url: legalForm.picture_url,
+      category_id: legalForm.category,
       category: category.name,
       rating: legalForm.rating,
       total_created: legalForm.total_created,
@@ -340,15 +337,16 @@ export class LegalFormService {
       return null;
     }
 
-    const category = await this.categoryRepository.findByStringId(legalForm.category);
+    const category = await this.categoryRepository.findBySlug(legalForm.category);
 
     const finalResult = {
-      id: legalForm.id,
+      slug: legalForm.slug,
       name: legalForm.name,
       formatted_price: legalForm.formatted_price,
       formatted_original_price: legalForm.formatted_original_price,
       description: legalForm.description,
       picture_url: legalForm.picture_url,
+      category_id: legalForm.category,
       category: category.name,
       rating: legalForm.rating,
       total_created: legalForm.total_created,

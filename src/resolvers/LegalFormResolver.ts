@@ -52,10 +52,10 @@ export class LegalFormResolver {
 
   @Query(() => LegalFormDetail, { nullable: true })
   async getLegalFormWithTemplate(
-    @Arg("id") id: string,
+    @Arg("slug") slug: string,
     @Arg("preview", { nullable: true }) preview?: boolean,
   ): Promise<LegalFormDetail | null> {
-    const result = await this.service.getLegalFormWithTemplate(id, preview);
+    const result = await this.service.getLegalFormWithTemplate(slug, preview);
     if (!result) {
       return null;
     }
